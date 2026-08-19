@@ -34,6 +34,17 @@ pub fn get_file_and_rank(index: i32) -> FileAndRank {
     FileAndRank::new(file, rank)
 }
 
+///this function will be the standard way to convert the top-left to bottom-right orientation standard
+/// to the bottom-left to top right standard,
+/// this just does almost the same work as file and rank except it flips the rank
+///
+/// calling this on an standard index should just flip the rank
+pub fn get_standard_oritentation_index(index: i32) -> i32 {
+    let file: i32 = index % 8;
+    let rank: i32 = 7 - (index / 8);
+    return file + (rank * 8);
+}
+
 ///function to convert mouse pos to an index on the board
 ///
 /// the function just takes the mouse position, the top left corner position of the baord and the size of each square

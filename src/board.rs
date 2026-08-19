@@ -60,5 +60,4 @@ impl BoardState {
         }
         final_board
     }
-    fn get_combined_display() {}
 }

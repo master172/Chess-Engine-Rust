@@ -1,4 +1,4 @@
-use chess::get_file_and_rank;
+use chess::{get_file_and_rank, get_standard_oritentation_index};
 
 use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR};
 
@@ -54,10 +54,7 @@ pub fn fen_to_baord_state(input: &str) -> BoardState {
 
 fn set_piece(board_state: &mut BoardState, index: usize, square_index: &mut u64) {
     //need to transform the square_index to standard orientation by flipping the ranks
-    let mut board_index: u64 = *square_index;
-    let file_and_rank = get_file_and_rank(board_index as i32);
-    let board_rank: u64 = 7 - file_and_rank.rank as u64;
-    board_index = board_rank * 8 + file_and_rank.file as u64;
+    let board_index: u64 = get_standard_oritentation_index(*square_index as i32) as u64;
 
     board_state.init_piece(index, board_index);
     *square_index += 1;
