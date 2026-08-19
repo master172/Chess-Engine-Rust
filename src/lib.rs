@@ -56,9 +56,7 @@ pub fn mouse_pos_to_board_index(
     }
     let pos = (pos.0 - start_pos.x, pos.1 - start_pos.y);
     let file: i32 = (pos.0 / cell_size.x) as i32;
-
     let mut rank: i32 = (pos.1 / cell_size.y) as i32;
-    rank = rank * 8;
-
+    rank = 56 - (rank * 8);
     return Some(file + rank);
 }

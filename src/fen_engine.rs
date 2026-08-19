@@ -1,0 +1,64 @@
+use chess::get_file_and_rank;
+
+use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR};
+
+pub fn fen_to_baord_state(input: &str) -> BoardState {
+    let fen_parts: Vec<&str> = input.split(" ").collect();
+    assert_eq!(
+        fen_parts.len(),
+        6,
+        "the fen string should follow the standard fen notation with six distinct parts"
+    );
+
+    let mut board_state: BoardState = BoardState::new();
+
+    let mut square_index: u64 = 0;
+
+    for i in fen_parts[0].chars() {
+        match i {
+            //first all the black pieces
+            'k' => set_piece(&mut board_state, BK, &mut square_index),
+            'q' => set_piece(&mut board_state, BQ, &mut square_index),
+            'p' => set_piece(&mut board_state, BP, &mut square_index),
+            'n' => set_piece(&mut board_state, BN, &mut square_index),
+            'b' => set_piece(&mut board_state, BB, &mut square_index),
+            'r' => set_piece(&mut board_state, BR, &mut square_index),
+            //now all the white pieces
+            'K' => set_piece(&mut board_state, WK, &mut square_index),
+            'Q' => set_piece(&mut board_state, WQ, &mut square_index),
+            'P' => set_piece(&mut board_state, WP, &mut square_index),
+            'N' => set_piece(&mut board_state, WN, &mut square_index),
+            'B' => set_piece(&mut board_state, WB, &mut square_index),
+            'R' => set_piece(&mut board_state, WR, &mut square_index),
+            //parse the numbers 1 through 8 since you can never skip less than 1 or more than 8 indexes
+            '1'..='8' => {
+                square_index +=
+                    i.to_digit(10)
+                        .expect("this error message should never occur") as u64
+            }
+            //square_index mod 8 is number of squares consumed in the current rank so subtracting them from 8 should
+            // give the number of squares to the next rank
+            '/' => {
+                if square_index % 8 != 0 {
+                    square_index += 8 - (square_index % 8);
+                }
+            }
+
+            //any other symbol here is invalid
+            _ => eprintln!("this is invalid in the notaion, {i}"),
+        };
+    }
+
+    board_state
+}
+
+fn set_piece(board_state: &mut BoardState, index: usize, square_index: &mut u64) {
+    //need to transform the square_index to standard orientation by flipping the ranks
+    let mut board_index: u64 = *square_index;
+    let file_and_rank = get_file_and_rank(board_index as i32);
+    let board_rank: u64 = 7 - file_and_rank.rank as u64;
+    board_index = board_rank * 8 + file_and_rank.file as u64;
+
+    board_state.init_piece(index, board_index);
+    *square_index += 1;
+}

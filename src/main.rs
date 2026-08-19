@@ -1,8 +1,9 @@
 use macroquad::prelude::*;
 
-use crate::{input::gather_input, renderer::render};
+use crate::{fen_engine::fen_to_baord_state, input::gather_input, renderer::render};
 
 mod board;
+mod fen_engine;
 mod input;
 pub mod renderer;
 
@@ -19,6 +20,9 @@ fn game_conf() -> Conf {
 
 #[macroquad::main(game_conf)]
 async fn main() {
+    let current_board_state =
+        fen_to_baord_state("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    println!("{current_board_state:#?}");
     loop {
         draw_board();
         gather_input();
