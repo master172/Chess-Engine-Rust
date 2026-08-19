@@ -1,7 +1,5 @@
 use macroquad::texture::{Texture2D, load_texture};
 
-use crate::piece_textures;
-
 pub struct PieceTextures {
     pub white_king: Texture2D,
     pub black_king: Texture2D,

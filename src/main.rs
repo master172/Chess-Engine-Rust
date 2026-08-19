@@ -1,11 +1,10 @@
 use macroquad::prelude::*;
 
 use crate::{
-    board::BoardState,
     fen_engine::fen_to_board_state,
-    input::gather_input,
+    input::{InputPackage, gather_input},
     piece_textures::{PieceTextures, load_all_textures},
-    renderer::render,
+    renderer::{handle_overlays, render_board, render_pieces},
 };
 
 mod board;
@@ -31,15 +30,15 @@ async fn main() {
         fen_to_board_state("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     let piece_textures: PieceTextures = load_all_textures().await;
-
+    let mut input_package: InputPackage = InputPackage {
+        left_mouse_index: None,
+    };
     loop {
         //println!("{}", get_fps());
-        draw_board(&board_state, &piece_textures);
-        gather_input();
-        next_frame().await
+        render_board();
+        gather_input(&mut input_package);
+        handle_overlays(&input_package);
+        render_pieces(&board_state, &piece_textures);
+        next_frame().await;
     }
-}
-
-fn draw_board(board_state: &BoardState, piece_textures: &PieceTextures) {
-    render(&board_state, &piece_textures);
 }

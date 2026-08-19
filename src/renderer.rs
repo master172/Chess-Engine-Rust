@@ -3,15 +3,17 @@ use macroquad::{
     color::{BLACK, Color, WHITE},
     math::vec2,
     shapes::draw_rectangle,
-    texture::{DrawTextureParams, Texture2D, draw_texture, draw_texture_ex, load_texture},
-    ui::widgets::Texture,
+    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
     window::clear_background,
 };
 
 use crate::{
     board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR},
-    piece_textures::{self, PieceTextures},
+    input::InputPackage,
+    piece_textures::PieceTextures,
 };
+
+mod overlay_manager;
 
 pub const START_POINT: Vector2 = Vector2 {
     x: ((1280 / 2) - 64 * 6) as f32,
@@ -22,8 +24,17 @@ pub const SQUARE_SIZE: Vector2 = Vector2 { x: 64.0, y: 64.0 };
 pub const LIGHT_CELL_COLOR: Color = Color::from_hex(0xEEEED2);
 pub const DARK_CELL_COLOR: Color = Color::from_hex(0x769656);
 
-pub fn render(board: &BoardState, piece_textures: &PieceTextures) {
+//function definitions begin from here
+pub fn render_board() {
     clear_background(BLACK);
+    draw_board();
+}
+
+pub fn render_pieces(board: &BoardState, piece_textures: &PieceTextures) {
+    draw_all_pieces(&board, &piece_textures);
+}
+
+fn draw_board() {
     let mut current_point: Vector2 = START_POINT;
     for i in 0..64 {
         increment_current_point(i, &mut current_point);
@@ -35,7 +46,6 @@ pub fn render(board: &BoardState, piece_textures: &PieceTextures) {
             get_current_color(i),
         );
     }
-    draw_all_pieces(&board, &piece_textures);
 }
 
 fn standard_board_index_to_texture_pos(index: u64) -> Vector2 {
@@ -116,4 +126,17 @@ fn return_texture_from_array_index(index: usize, textures: &PieceTextures) -> Op
         BN => Some(&textures.black_knight),
         _ => None,
     }
+}
+
+//overlay code
+pub fn handle_overlays(input_package: &InputPackage) {
+    match input_package.left_mouse_index {
+        Some(val) => draw_overlay_square(val, overlay_manager::SELECTED_PIECE),
+        None => (),
+    }
+}
+
+fn draw_overlay_square(index: i32, color: Color) {
+    let pos: Vector2 = standard_board_index_to_texture_pos(index as u64);
+    draw_rectangle(pos.x, pos.y, SQUARE_SIZE.x, SQUARE_SIZE.y, color);
 }
