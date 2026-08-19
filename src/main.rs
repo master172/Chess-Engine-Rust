@@ -28,12 +28,12 @@ fn game_conf() -> Conf {
 #[macroquad::main(game_conf)]
 async fn main() {
     let board_state =
-        fen_to_board_state("r3k2r/pppq1ppp/2npbn2/8/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w kq - 0 1");
+        fen_to_board_state("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     let piece_textures: PieceTextures = load_all_textures().await;
 
     loop {
-        println!("{}", get_fps());
+        //println!("{}", get_fps());
         draw_board(&board_state, &piece_textures);
         gather_input();
         next_frame().await

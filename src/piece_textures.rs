@@ -26,7 +26,7 @@ pub async fn load_all_textures() -> PieceTextures {
         white_bishop: load_texture("assets/white_bishop.png")
             .await
             .expect("failed to load white bishop file"),
-        white_knight: load_texture("assets/white_bishop.png")
+        white_knight: load_texture("assets/white_knight.png")
             .await
             .expect("failed to load white knight file"),
         white_pawn: load_texture("assets/white_pawn.png")
@@ -46,7 +46,7 @@ pub async fn load_all_textures() -> PieceTextures {
         black_bishop: load_texture("assets/black_bishop.png")
             .await
             .expect("failed to load black bishop file"),
-        black_knight: load_texture("assets/black_bishop.png")
+        black_knight: load_texture("assets/black_knight.png")
             .await
             .expect("failed to load black knight file"),
         black_pawn: load_texture("assets/black_pawn.png")
