@@ -1,10 +1,11 @@
 use macroquad::prelude::*;
 
 use crate::{
-    fen_engine::fen_to_baord_state,
+    board::BoardState,
+    fen_engine::fen_to_board_state,
     input::gather_input,
     piece_textures::{PieceTextures, load_all_textures},
-    renderer::{draw_texture_at_pos, render},
+    renderer::render,
 };
 
 mod board;
@@ -26,19 +27,19 @@ fn game_conf() -> Conf {
 
 #[macroquad::main(game_conf)]
 async fn main() {
-    let current_board_state =
-        fen_to_baord_state("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    let board_state =
+        fen_to_board_state("r3k2r/pppq1ppp/2npbn2/8/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w kq - 0 1");
 
-    let all_textures: PieceTextures = load_all_textures().await;
-    println!("{current_board_state:#?}");
+    let piece_textures: PieceTextures = load_all_textures().await;
+
     loop {
-        draw_board();
-        draw_texture_at_pos(42, &all_textures.white_bishop);
+        println!("{}", get_fps());
+        draw_board(&board_state, &piece_textures);
         gather_input();
         next_frame().await
     }
 }
 
-fn draw_board() {
-    render();
+fn draw_board(board_state: &BoardState, piece_textures: &PieceTextures) {
+    render(&board_state, &piece_textures);
 }

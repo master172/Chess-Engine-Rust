@@ -53,7 +53,7 @@ impl BoardState {
         self.board_representation[index] = self.board_representation[index] | 1 << square_index;
     }
 
-    pub fn get_all_bitboards_combined(&self) -> u64 {
+    pub fn _get_all_bitboards_combined(&self) -> u64 {
         let mut final_board: u64 = 0;
         for i in self.board_representation {
             final_board = final_board | i

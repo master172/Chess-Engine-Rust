@@ -1,8 +1,8 @@
-use chess::{get_file_and_rank, get_standard_oritentation_index};
+use chess::get_standard_oritentation_index;
 
 use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR};
 
-pub fn fen_to_baord_state(input: &str) -> BoardState {
+pub fn fen_to_board_state(input: &str) -> BoardState {
     let fen_parts: Vec<&str> = input.split(" ").collect();
     assert_eq!(
         fen_parts.len(),
