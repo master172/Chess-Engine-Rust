@@ -4,7 +4,7 @@ use crate::{input::gather_input, renderer::render};
 
 mod board;
 mod input;
-mod renderer;
+pub mod renderer;
 
 fn game_conf() -> Conf {
     Conf {
@@ -20,7 +20,6 @@ fn game_conf() -> Conf {
 #[macroquad::main(game_conf)]
 async fn main() {
     loop {
-        clear_background(BLACK);
         draw_board();
         gather_input();
         next_frame().await

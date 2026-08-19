@@ -1,16 +1,21 @@
 use chess::{Vector2, get_file_and_rank};
-use macroquad::{color::Color, shapes::draw_rectangle};
+use macroquad::{
+    color::{BLACK, Color},
+    shapes::draw_rectangle,
+    window::clear_background,
+};
 
-const START_POINT: Vector2 = Vector2 {
+pub const START_POINT: Vector2 = Vector2 {
     x: ((1280 / 2) - 64 * 6) as f32,
     y: ((720 / 2) - 64 * 5) as f32,
 };
-const SQUARE_SIZE: Vector2 = Vector2 { x: 64.0, y: 64.0 };
+pub const SQUARE_SIZE: Vector2 = Vector2 { x: 64.0, y: 64.0 };
 
-const LIGHT_CELL_COLOR: Color = Color::from_hex(0xEEEED2);
-const DARK_CELL_COLOR: Color = Color::from_hex(0x769656);
+pub const LIGHT_CELL_COLOR: Color = Color::from_hex(0xEEEED2);
+pub const DARK_CELL_COLOR: Color = Color::from_hex(0x769656);
 
 pub fn render() {
+    clear_background(BLACK);
     let mut current_point: Vector2 = START_POINT;
     for i in 0..64 {
         increment_current_point(i, &mut current_point);

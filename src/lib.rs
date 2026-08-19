@@ -33,3 +33,32 @@ pub fn get_file_and_rank(index: i32) -> FileAndRank {
     let rank: i32 = index / 8;
     FileAndRank::new(file, rank)
 }
+
+///function to convert mouse pos to an index on the board
+///
+/// the function just takes the mouse position, the top left corner position of the baord and the size of each square
+///
+/// then checks wether the click is on bounds and if it is returns `Some(index)` else returns `None`
+///
+/// where index is an i32 that goes from 0 to 63
+pub fn mouse_pos_to_board_index(
+    pos: &(f32, f32),
+    start_pos: &Vector2,
+    cell_size: &Vector2,
+) -> Option<i32> {
+    let board_width_end_pos: f32 = start_pos.x + (8.0 * cell_size.x);
+    let board_height_end_pos: f32 = start_pos.y + (8.0 * cell_size.y);
+
+    if pos.0 < start_pos.x || pos.0 > board_width_end_pos {
+        return None;
+    } else if pos.1 < start_pos.y || pos.1 > board_height_end_pos {
+        return None;
+    }
+    let pos = (pos.0 - start_pos.x, pos.1 - start_pos.y);
+    let file: i32 = (pos.0 / cell_size.x) as i32;
+
+    let mut rank: i32 = (pos.1 / cell_size.y) as i32;
+    rank = rank * 8;
+
+    return Some(file + rank);
+}
