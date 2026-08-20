@@ -34,6 +34,10 @@ pub fn get_file_and_rank(index: i32) -> FileAndRank {
     FileAndRank::new(file, rank)
 }
 
+pub fn file_and_rank_to_index(file_and_rank: FileAndRank) -> i32 {
+    return (file_and_rank.rank * 8) + file_and_rank.file;
+}
+
 ///this function will be the standard way to convert the top-left to bottom-right orientation standard
 /// to the bottom-left to top right standard,
 /// this just does almost the same work as file and rank except it flips the rank
