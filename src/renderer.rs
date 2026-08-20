@@ -9,6 +9,7 @@ use macroquad::{
 
 use crate::{
     board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR},
+    game::GameState,
     input::InputPackage,
     piece_textures::PieceTextures,
 };
@@ -79,14 +80,25 @@ pub fn draw_texture_at_pos(index: u64, texture: &Texture2D) {
 fn draw_all_pieces(board_state: &BoardState, textures: &PieceTextures) {
     for (bit_board_index, bit_board) in board_state.board_representation.iter().enumerate() {
         for square_index in 0..64 {
-            if bit_board & (1 << square_index) != 0 {
-                draw_texture_at_pos(
-                    square_index as u64,
-                    return_texture_from_array_index(bit_board_index as usize, &textures)
-                        .expect("failed to load texture"),
-                );
-            }
+            draw_piece(bit_board, square_index, bit_board_index, textures);
         }
+    }
+}
+
+fn draw_piece(
+    bit_board: &u64,
+    square_index: i32,
+    bit_board_index: usize,
+    textures: &PieceTextures,
+) {
+    if bit_board & (1 << square_index) == 0 {
+        return;
+    } else {
+        draw_texture_at_pos(
+            square_index as u64,
+            return_texture_from_array_index(bit_board_index as usize, &textures)
+                .expect("failed to load texture"),
+        );
     }
 }
 
@@ -139,4 +151,16 @@ pub fn handle_overlays(input_package: &InputPackage) {
 fn draw_overlay_square(index: i32, color: Color) {
     let pos: Vector2 = standard_board_index_to_texture_pos(index as u64);
     draw_rectangle(pos.x, pos.y, SQUARE_SIZE.x, SQUARE_SIZE.y, color);
+}
+
+pub fn draw_legal_squares(game_state: &GameState) {
+    if game_state.legal_moves == 0 {
+        return;
+    };
+    for i in 0..64 {
+        let bitmask: u64 = 1 << i;
+        if game_state.legal_moves & bitmask != 0 {
+            draw_overlay_square(i, overlay_manager::LEGAL_SQUARE);
+        }
+    }
 }

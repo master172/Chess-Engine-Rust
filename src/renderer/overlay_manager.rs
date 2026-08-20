@@ -1,6 +1,7 @@
 use macroquad::color::Color;
 
 pub const SELECTED_PIECE: Color = Color::from_rgba(246, 211, 101, 204);
+pub const LEGAL_SQUARE: Color = Color::from_rgba(124, 179, 66, 167);
 
 pub fn _get_overlay_color(base: &Color, target: &Color) -> Color {
     let r: f32 = (target.r - (1.0 - target.a) * base.r) / target.a;

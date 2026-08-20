@@ -86,10 +86,15 @@ impl BoardState {
         ) {
             return;
         }
-        let (piece, _side) = self
+        let (piece, side) = self
             .get_piece_from_state(game_state)
             .expect("this is also one of those errors that should never show up");
-        println!("{}", piece.generate_moves());
+
+        game_state.legal_moves = piece.generate_moves(
+            game_state.current_index.unwrap() as u64,
+            &self.board_representation,
+            &side,
+        );
     }
 
     pub fn validate_piece_selection(&self, index: u64) -> bool {

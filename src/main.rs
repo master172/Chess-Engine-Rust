@@ -8,7 +8,7 @@ use crate::{
     game::{GameState, handle_game_state},
     input::InputPackage,
     piece_textures::{PieceTextures, load_all_textures},
-    renderer::{handle_overlays, render_board, render_pieces},
+    renderer::{draw_legal_squares, handle_overlays, render_board, render_pieces},
 };
 
 mod board;
@@ -49,7 +49,7 @@ async fn main() {
         //println!("{}", get_fps());
         render_board();
         process_input(&mut input_package, &mut game_state, &mut board_state);
-
+        draw_legal_squares(&game_state);
         render_pieces(&board_state, &piece_textures);
         next_frame().await;
     }

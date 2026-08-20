@@ -20,21 +20,26 @@ pub struct Piece {
 }
 
 impl Piece {
-    pub fn generate_moves(&self) -> u64 {
+    pub fn generate_moves(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+    ) -> u64 {
         let mut generated: u64 = 0;
         for i in self.generators {
-            generated = generated | i.get_moves();
+            generated = generated | i.get_moves(index, board_representation, side);
         }
         generated
     }
 }
 
 impl MoveGenerators {
-    fn get_moves(&self) -> u64 {
+    fn get_moves(&self, index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
         match &self {
             MoveGenerators::King => King::gen_moves(),
             MoveGenerators::Bishop => Bishop::gen_moves(),
-            MoveGenerators::Rook => Rook::gen_moves(),
+            MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
             MoveGenerators::Knight => Knight::gen_moves(),
             MoveGenerators::Pawn => Pawn::gen_moves(),
         }
