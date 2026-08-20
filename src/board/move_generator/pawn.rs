@@ -1,5 +1,8 @@
 use crate::board::{
-    move_generator::{get_all_black_pieces, get_all_white_pieces, get_to_left, get_to_right},
+    move_generator::{
+        get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_left, get_to_right,
+        get_to_top,
+    },
     pieces::Sides,
 };
 
@@ -33,14 +36,30 @@ impl Pawn {
 }
 
 fn add_foward_double_pos(index: u64, side: &Sides, board_representation: &[u64; 12]) -> u64 {
-    let pos: u64 = get_foward_double_movement_pos(index, side);
-    if validate_foward_movement(pos, board_representation) {
+    let mut final_board: u64 = 0;
+    for board in board_representation.iter() {
+        final_board = final_board | board;
+    }
+    let pos: u64 = get_foward_double_movement_pos(index, side, final_board);
+    if validate_foward_double_movement(pos, final_board) {
         return pos;
     }
     return 0;
 }
 
 fn add_foward_pos(index: u64, side: &Sides, board_representation: &[u64; 12]) -> u64 {
+    match side {
+        Sides::WHITE => {
+            if get_to_top(index) == 0 {
+                return 0;
+            }
+        }
+        Sides::BLACK => {
+            if get_to_bottom(index) == 0 {
+                return 0;
+            }
+        }
+    }
     let pos: u64 = get_foward_movement_pos(index, side);
     if validate_foward_movement(pos, board_representation) {
         return pos;
@@ -61,18 +80,18 @@ fn get_foward_movement_pos(index: u64, side: &Sides) -> u64 {
     pos
 }
 
-fn get_foward_double_movement_pos(index: u64, side: &Sides) -> u64 {
+fn get_foward_double_movement_pos(index: u64, side: &Sides, final_board: u64) -> u64 {
     let pos: u64;
     match side {
         Sides::BLACK => {
-            if (1 << index) & BLACK_STARTING_SQUARES != 0 {
+            if (1 << index) & BLACK_STARTING_SQUARES != 0 && (1 << index - 8) & final_board == 0 {
                 pos = 1 << (index - 16);
             } else {
                 pos = 0;
             }
         }
         Sides::WHITE => {
-            if (1 << index) & WHITE_STARTING_SQUARES != 0 {
+            if (1 << index) & WHITE_STARTING_SQUARES != 0 && (1 << index + 8) & final_board == 0 {
                 pos = 1 << (index + 16);
             } else {
                 pos = 0;
@@ -87,6 +106,13 @@ fn validate_foward_movement(pos: u64, board_representation: &[u64; 12]) -> bool 
     for board in board_representation.iter() {
         final_board = final_board | board;
     }
+    if pos & final_board != 0 {
+        return false;
+    }
+    return true;
+}
+
+fn validate_foward_double_movement(pos: u64, final_board: u64) -> bool {
     if pos & final_board != 0 {
         return false;
     }
@@ -125,8 +151,18 @@ fn get_attack_left_pos(index: u64, side: &Sides) -> u64 {
     }
     let attack_pos: u64;
     match side {
-        Sides::WHITE => attack_pos = 1 << (index + 7),
-        Sides::BLACK => attack_pos = 1 << (index - 9),
+        Sides::WHITE => {
+            if get_to_top(index) == 0 {
+                return 0;
+            }
+            attack_pos = 1 << (index + 7);
+        }
+        Sides::BLACK => {
+            if get_to_bottom(index) == 0 {
+                return 0;
+            }
+            attack_pos = 1 << (index - 9);
+        }
     }
     attack_pos
 }
@@ -137,8 +173,18 @@ fn get_attack_right_pos(index: u64, side: &Sides) -> u64 {
     }
     let attack_pos: u64;
     match side {
-        Sides::WHITE => attack_pos = 1 << (index + 9),
-        Sides::BLACK => attack_pos = 1 << (index - 7),
+        Sides::WHITE => {
+            if get_to_top(index) == 0 {
+                return 0;
+            }
+            attack_pos = 1 << (index + 9);
+        }
+        Sides::BLACK => {
+            if get_to_bottom(index) == 0 {
+                return 0;
+            }
+            attack_pos = 1 << (index - 7);
+        }
     }
     attack_pos
 }
