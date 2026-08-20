@@ -1,6 +1,16 @@
-use crate::{GameState, input::InputPackage};
+use crate::{
+    GameState,
+    board::{
+        piece_definitions::{BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK},
+        pieces::{
+            Piece,
+            Sides::{self, BLACK, WHITE},
+        },
+    },
+};
 
 mod move_generator;
+mod piece_definitions;
 mod pieces;
 
 ///index of white king
@@ -55,21 +65,40 @@ impl BoardState {
         self.board_representation[index] = self.board_representation[index] | 1 << square_index;
     }
 
-    pub fn generate_legal_moves(&self, game_state: &mut GameState) {
+    fn get_piece_from_state(&self, game_state: &mut GameState) -> Option<(Piece, Sides)> {
         let current_bit_mask: u64 = 1
             << game_state
                 .current_index
                 .expect("this error message shoudl never be called");
         for (index, val) in self.board_representation.iter().enumerate() {
             if val & current_bit_mask != 0 {
-                println!(
-                    "{} at index {}",
-                    index_to_piece_string(index as usize)
-                        .expect("this error message should not appear"),
-                    game_state.current_index.expect("neither should this")
-                );
+                return index_to_piece(index);
             }
         }
+        return None;
+    }
+
+    pub fn generate_legal_moves(&self, game_state: &mut GameState) {
+        if !self.validate_piece_selection(
+            game_state
+                .current_index
+                .expect("again this error message should also never show up") as u64,
+        ) {
+            return;
+        }
+        let (piece, _side) = self
+            .get_piece_from_state(game_state)
+            .expect("this is also one of those errors that should never show up");
+        println!("{}", piece.generate_moves());
+    }
+
+    pub fn validate_piece_selection(&self, index: u64) -> bool {
+        for i in self.board_representation {
+            if i & (1 << index) != 0 {
+                return true;
+            }
+        }
+        return false;
     }
 
     pub fn _get_all_bitboards_combined(&self) -> u64 {
@@ -81,20 +110,20 @@ impl BoardState {
     }
 }
 
-pub fn index_to_piece_string(index: usize) -> Option<String> {
+pub fn index_to_piece(index: usize) -> Option<(Piece, Sides)> {
     match index {
-        WK => Some(String::from("white king")),
-        BK => Some(String::from("black king")),
-        WQ => Some(String::from("white queen")),
-        BQ => Some(String::from("black queen")),
-        WP => Some(String::from("white pawn")),
-        BP => Some(String::from("black pawn")),
-        WB => Some(String::from("white bishop")),
-        BB => Some(String::from("black bishop")),
-        WR => Some(String::from("white rook")),
-        BR => Some(String::from("black rook")),
-        WN => Some(String::from("white knight")),
-        BN => Some(String::from("black knight")),
+        WK => Some((KING, WHITE)),
+        BK => Some((KING, BLACK)),
+        WQ => Some((QUEEN, WHITE)),
+        BQ => Some((QUEEN, BLACK)),
+        WP => Some((PAWN, WHITE)),
+        BP => Some((PAWN, BLACK)),
+        WB => Some((BISHOP, WHITE)),
+        BB => Some((BISHOP, BLACK)),
+        WR => Some((ROOK, WHITE)),
+        BR => Some((ROOK, BLACK)),
+        WN => Some((KNIGHT, WHITE)),
+        BN => Some((KNIGHT, BLACK)),
         _ => None,
     }
 }

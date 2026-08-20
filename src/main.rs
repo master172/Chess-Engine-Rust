@@ -49,7 +49,7 @@ async fn main() {
         //println!("{}", get_fps());
         render_board();
         process_input(&mut input_package, &mut game_state, &mut board_state);
-        handle_overlays(&input_package);
+
         render_pieces(&board_state, &piece_textures);
         next_frame().await;
     }
@@ -67,4 +67,12 @@ fn process_input(
             handle_game_state(game_state, board_state);
         }
     };
+    match game_state.current_index {
+        Some(val) => {
+            if board_state.validate_piece_selection(val as u64) {
+                handle_overlays(input_package);
+            }
+        }
+        None => (),
+    }
 }
