@@ -37,7 +37,7 @@ impl Piece {
 impl MoveGenerators {
     fn get_moves(&self, index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
         match &self {
-            MoveGenerators::King => King::gen_moves(),
+            MoveGenerators::King => King::gen_moves(index, board_representation, side),
             MoveGenerators::Bishop => Bishop::gen_moves(index, board_representation, side),
             MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
             MoveGenerators::Knight => Knight::gen_moves(index, board_representation, side),
