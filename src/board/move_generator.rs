@@ -1,6 +1,6 @@
-use chess::{FileAndRank, get_file_and_rank};
-
 use crate::board::{BB, BK, BN, BP, BQ, BR, WB, WK, WN, WP, WQ, WR};
+use chess::{FileAndRank, get_file_and_rank};
+use std::cmp::min;
 
 pub mod bishop;
 pub mod king;
@@ -55,6 +55,22 @@ fn to_direction(
     }
 
     return Some(generated);
+}
+
+pub fn get_to_top_right(index: u64) -> usize {
+    return min(get_to_top(index), get_to_right(index));
+}
+
+pub fn get_to_top_left(index: u64) -> usize {
+    return min(get_to_top(index), get_to_left(index));
+}
+
+pub fn get_to_bottom_right(index: u64) -> usize {
+    return min(get_to_bottom(index), get_to_right(index));
+}
+
+pub fn get_to_bottom_left(index: u64) -> usize {
+    return min(get_to_bottom(index), get_to_left(index));
 }
 
 pub fn get_to_right(index: u64) -> usize {

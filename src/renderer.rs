@@ -157,10 +157,11 @@ pub fn draw_legal_squares(game_state: &GameState) {
     if game_state.legal_moves == 0 {
         return;
     };
-    for i in 0..64 {
-        let bitmask: u64 = 1 << i;
-        if game_state.legal_moves & bitmask != 0 {
-            draw_overlay_square(i, overlay_manager::LEGAL_SQUARE);
-        }
+    let mut mask = game_state.legal_moves;
+    while mask != 0 {
+        let index = mask.trailing_zeros();
+        draw_overlay_square(index as i32, overlay_manager::LEGAL_SQUARE);
+        // subtracting 1 turns all 0's before the first 1 to 1 and the first 1 to 0 the and removes all of them
+        mask &= mask - 1;
     }
 }
