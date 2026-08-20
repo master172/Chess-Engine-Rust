@@ -1,3 +1,5 @@
+use crate::{GameState, input::InputPackage};
+
 mod move_generator;
 mod pieces;
 
@@ -53,11 +55,46 @@ impl BoardState {
         self.board_representation[index] = self.board_representation[index] | 1 << square_index;
     }
 
+    pub fn generate_legal_moves(&self, game_state: &mut GameState) {
+        let current_bit_mask: u64 = 1
+            << game_state
+                .current_index
+                .expect("this error message shoudl never be called");
+        for (index, val) in self.board_representation.iter().enumerate() {
+            if val & current_bit_mask != 0 {
+                println!(
+                    "{} at index {}",
+                    index_to_piece_string(index as usize)
+                        .expect("this error message should not appear"),
+                    game_state.current_index.expect("neither should this")
+                );
+            }
+        }
+    }
+
     pub fn _get_all_bitboards_combined(&self) -> u64 {
         let mut final_board: u64 = 0;
         for i in self.board_representation {
             final_board = final_board | i
         }
         final_board
+    }
+}
+
+pub fn index_to_piece_string(index: usize) -> Option<String> {
+    match index {
+        WK => Some(String::from("white king")),
+        BK => Some(String::from("black king")),
+        WQ => Some(String::from("white queen")),
+        BQ => Some(String::from("black queen")),
+        WP => Some(String::from("white pawn")),
+        BP => Some(String::from("black pawn")),
+        WB => Some(String::from("white bishop")),
+        BB => Some(String::from("black bishop")),
+        WR => Some(String::from("white rook")),
+        BR => Some(String::from("black rook")),
+        WN => Some(String::from("white knight")),
+        BN => Some(String::from("black knight")),
+        _ => None,
     }
 }
