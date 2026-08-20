@@ -41,7 +41,7 @@ impl MoveGenerators {
             MoveGenerators::Bishop => Bishop::gen_moves(index, board_representation, side),
             MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
             MoveGenerators::Knight => Knight::gen_moves(index, board_representation, side),
-            MoveGenerators::Pawn => Pawn::gen_moves(),
+            MoveGenerators::Pawn => Pawn::gen_moves(index, board_representation, side),
         }
     }
 }

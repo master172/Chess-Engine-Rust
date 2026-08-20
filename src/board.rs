@@ -105,14 +105,6 @@ impl BoardState {
         }
         return false;
     }
-
-    pub fn _get_all_bitboards_combined(&self) -> u64 {
-        let mut final_board: u64 = 0;
-        for i in self.board_representation {
-            final_board = final_board | i
-        }
-        final_board
-    }
 }
 
 pub fn index_to_piece(index: usize) -> Option<(Piece, Sides)> {

@@ -71,6 +71,8 @@ fn process_input(
         Some(val) => {
             if board_state.validate_piece_selection(val as u64) {
                 handle_overlays(input_package);
+            } else if 1 << val & game_state.legal_moves == 0 {
+                game_state.legal_moves = 0;
             }
         }
         None => (),
