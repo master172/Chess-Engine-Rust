@@ -1,5 +1,3 @@
-use std::env::args;
-
 use chess::get_standard_oritentation_index;
 
 use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR, pieces::Sides};

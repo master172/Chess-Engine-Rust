@@ -10,10 +10,19 @@ pub enum MoveGenerators {
     Pawn,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Sides {
     BLACK,
     WHITE,
+}
+
+impl Sides {
+    pub fn flip(&self) -> Self {
+        match self {
+            Self::BLACK => Self::WHITE,
+            Sides::WHITE => Sides::BLACK,
+        }
+    }
 }
 
 pub struct Piece {

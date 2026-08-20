@@ -92,7 +92,9 @@ impl BoardState {
         let (piece, side, index) = self
             .get_piece_from_index(game_state.current_index.unwrap())
             .expect("this is also one of those errors that should never show up");
-
+        if game_state.dev_mode == false && side != game_state.current_side {
+            return;
+        }
         game_state.current_array_index = Some(index);
 
         game_state.legal_moves = piece.generate_moves(
@@ -141,6 +143,9 @@ impl BoardState {
         }
 
         self.reset_necessary_game_state_variables(game_state);
+        if game_state.dev_mode == false {
+            game_state.current_side = game_state.current_side.flip();
+        }
     }
 }
 
