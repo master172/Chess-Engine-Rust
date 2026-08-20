@@ -32,14 +32,18 @@ fn game_conf() -> Conf {
 #[macroquad::main(game_conf)]
 async fn main() {
     let mut starting_string: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let mut dev_mode: bool = false;
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 {
         starting_string = &args[1];
     }
+    if args.len() > 2 {
+        dev_mode = args[2].parse::<bool>().unwrap_or(false);
+    }
     let mut board_state = fen_to_board_state(starting_string);
 
-    let mut game_state: GameState = GameState::new();
+    let mut game_state: GameState = GameState::new(dev_mode, board_state.side_to_start);
 
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {

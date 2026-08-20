@@ -11,7 +11,7 @@ use crate::{
 
 mod move_generator;
 mod piece_definitions;
-mod pieces;
+pub mod pieces;
 
 ///index of white king
 pub const WK: usize = 0;
@@ -55,12 +55,14 @@ const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
 #[derive(Debug)]
 pub struct BoardState {
     pub board_representation: [u64; 12],
+    pub side_to_start: Sides,
 }
 
 impl BoardState {
-    pub fn new() -> Self {
+    pub fn new(side: Sides) -> Self {
         Self {
             board_representation: [0; 12],
+            side_to_start: side,
         }
     }
 

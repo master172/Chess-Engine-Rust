@@ -1,6 +1,8 @@
+use std::env::args;
+
 use chess::get_standard_oritentation_index;
 
-use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR};
+use crate::board::{BB, BK, BN, BP, BQ, BR, BoardState, WB, WK, WN, WP, WQ, WR, pieces::Sides};
 
 pub fn fen_to_board_state(input: &str) -> BoardState {
     let fen_parts: Vec<&str> = input.split(" ").collect();
@@ -10,7 +12,12 @@ pub fn fen_to_board_state(input: &str) -> BoardState {
         "the fen string should follow the standard fen notation with six distinct parts"
     );
 
-    let mut board_state: BoardState = BoardState::new();
+    let side_to_start = match fen_parts[1].trim() {
+        "w" => Sides::WHITE,
+        "b" => Sides::BLACK,
+        _ => panic!("invalid fen string"),
+    };
+    let mut board_state: BoardState = BoardState::new(side_to_start);
 
     let mut square_index: u64 = 0;
 

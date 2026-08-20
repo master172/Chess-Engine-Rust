@@ -10,6 +10,7 @@ pub enum MoveGenerators {
     Pawn,
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum Sides {
     BLACK,
     WHITE,

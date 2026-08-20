@@ -1,6 +1,12 @@
-use crate::{board::BoardState, input::InputPackage};
+use crate::{
+    board::{BoardState, pieces::Sides},
+    input::InputPackage,
+};
 
 pub struct GameState {
+    pub dev_mode: bool,
+    pub current_side: Sides,
+
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
     pub current_array_index: Option<usize>,
@@ -14,12 +20,14 @@ pub enum MoveResult {
 }
 
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(dev_mode: bool, side: Sides) -> Self {
         Self {
             current_index: None,
             legal_moves: 0,
             previous_index: None,
             current_array_index: None,
+            dev_mode,
+            current_side: side,
         }
     }
 
