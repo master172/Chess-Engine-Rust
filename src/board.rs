@@ -120,6 +120,11 @@ impl BoardState {
         game_state.current_array_index = None
     }
 
+    pub fn valid_piece_selection(&self, index: i32, game_state: &GameState) -> bool {
+        let (_, side, _) = self.get_piece_from_index(index).unwrap();
+        return side == game_state.current_side;
+    }
+
     pub fn move_piece(&mut self, game_state: &mut GameState) {
         let (_, side, _) = self
             .get_piece_from_index(game_state.previous_index.unwrap())

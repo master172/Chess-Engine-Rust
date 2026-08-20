@@ -76,10 +76,13 @@ fn process_input(
     };
     match game_state.current_index {
         Some(val) => {
-            if board_state.validate_piece_selection(val as u64) {
+            if board_state.validate_piece_selection(val as u64)
+                && board_state.valid_piece_selection(val, game_state)
+            {
                 handle_overlays(input_package);
-            } else if 1 << val & game_state.legal_moves == 0 {
-                game_state.legal_moves = 0;
+            } else {
+                board_state.reset_necessary_game_state_variables(game_state);
+                input_package.reset_input();
             }
         }
         None => (),
