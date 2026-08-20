@@ -49,6 +49,9 @@ pub const WB: usize = 10;
 ///index of black bishops
 pub const BB: usize = 11;
 
+const BLACK_INDEXES: [usize; 6] = [BK, BQ, BN, BR, BB, BP];
+const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
+
 #[derive(Debug)]
 pub struct BoardState {
     pub board_representation: [u64; 12],
@@ -65,11 +68,8 @@ impl BoardState {
         self.board_representation[index] = self.board_representation[index] | 1 << square_index;
     }
 
-    fn get_piece_from_state(&self, game_state: &mut GameState) -> Option<(Piece, Sides)> {
-        let current_bit_mask: u64 = 1
-            << game_state
-                .current_index
-                .expect("this error message shoudl never be called");
+    pub fn get_piece_from_index(&self, index: i32) -> Option<(Piece, Sides, usize)> {
+        let current_bit_mask: u64 = 1 << index;
         for (index, val) in self.board_representation.iter().enumerate() {
             if val & current_bit_mask != 0 {
                 return index_to_piece(index);
@@ -86,9 +86,12 @@ impl BoardState {
         ) {
             return;
         }
-        let (piece, side) = self
-            .get_piece_from_state(game_state)
+        game_state.previous_index = Some(game_state.current_index.unwrap());
+        let (piece, side, index) = self
+            .get_piece_from_index(game_state.current_index.unwrap())
             .expect("this is also one of those errors that should never show up");
+
+        game_state.current_array_index = Some(index);
 
         game_state.legal_moves = piece.generate_moves(
             game_state.current_index.unwrap() as u64,
@@ -105,22 +108,54 @@ impl BoardState {
         }
         return false;
     }
+
+    pub fn reset_necessary_game_state_variables(&self, game_state: &mut GameState) {
+        game_state.legal_moves = 0;
+        game_state.previous_index = None;
+        game_state.current_index = None;
+        game_state.current_array_index = None
+    }
+
+    pub fn move_piece(&mut self, game_state: &mut GameState) {
+        let (_, side, _) = self
+            .get_piece_from_index(game_state.previous_index.unwrap())
+            .unwrap();
+        self.board_representation[game_state.current_array_index.unwrap()] &=
+            !(1 << (game_state.previous_index.unwrap() as u64));
+        self.board_representation[game_state.current_array_index.unwrap()] |=
+            1 << (game_state.current_index.unwrap() as u64);
+        let capture_mask: u64 = !(1 << (game_state.current_index.unwrap() as u64));
+        match side {
+            Sides::WHITE => {
+                for i in BLACK_INDEXES {
+                    self.board_representation[i] &= capture_mask;
+                }
+            }
+            Sides::BLACK => {
+                for i in WHITE_INDEXES {
+                    self.board_representation[i] &= capture_mask;
+                }
+            }
+        }
+
+        self.reset_necessary_game_state_variables(game_state);
+    }
 }
 
-pub fn index_to_piece(index: usize) -> Option<(Piece, Sides)> {
+pub fn index_to_piece(index: usize) -> Option<(Piece, Sides, usize)> {
     match index {
-        WK => Some((KING, WHITE)),
-        BK => Some((KING, BLACK)),
-        WQ => Some((QUEEN, WHITE)),
-        BQ => Some((QUEEN, BLACK)),
-        WP => Some((PAWN, WHITE)),
-        BP => Some((PAWN, BLACK)),
-        WB => Some((BISHOP, WHITE)),
-        BB => Some((BISHOP, BLACK)),
-        WR => Some((ROOK, WHITE)),
-        BR => Some((ROOK, BLACK)),
-        WN => Some((KNIGHT, WHITE)),
-        BN => Some((KNIGHT, BLACK)),
+        WK => Some((KING, WHITE, index)),
+        BK => Some((KING, BLACK, index)),
+        WQ => Some((QUEEN, WHITE, index)),
+        BQ => Some((QUEEN, BLACK, index)),
+        WP => Some((PAWN, WHITE, index)),
+        BP => Some((PAWN, BLACK, index)),
+        WB => Some((BISHOP, WHITE, index)),
+        BB => Some((BISHOP, BLACK, index)),
+        WR => Some((ROOK, WHITE, index)),
+        BR => Some((ROOK, BLACK, index)),
+        WN => Some((KNIGHT, WHITE, index)),
+        BN => Some((KNIGHT, BLACK, index)),
         _ => None,
     }
 }

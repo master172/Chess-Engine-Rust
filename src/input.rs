@@ -28,4 +28,8 @@ impl InputPackage {
         };
         return Idle;
     }
+
+    pub fn reset_input(&mut self) {
+        self.left_mouse_index = None;
+    }
 }

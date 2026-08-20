@@ -5,7 +5,7 @@ use macroquad::prelude::*;
 use crate::{
     board::BoardState,
     fen_engine::fen_to_board_state,
-    game::{GameState, handle_game_state},
+    game::{GameState, MoveResult, handle_game_state},
     input::InputPackage,
     piece_textures::{PieceTextures, load_all_textures},
     renderer::{draw_legal_squares, handle_overlays, render_board, render_pieces},
@@ -64,7 +64,10 @@ fn process_input(
         input::States::Idle => (),
         input::States::Update => {
             game_state.input_to_game_state(input_package);
-            handle_game_state(game_state, board_state);
+            match handle_game_state(game_state, board_state) {
+                MoveResult::Move => input_package.reset_input(),
+                _ => (),
+            }
         }
     };
     match game_state.current_index {

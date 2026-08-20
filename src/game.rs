@@ -1,8 +1,16 @@
 use crate::{board::BoardState, input::InputPackage};
 
 pub struct GameState {
+    pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
+    pub current_array_index: Option<usize>,
     pub legal_moves: u64,
+}
+
+pub enum MoveResult {
+    Idle,
+    Move,
+    Generate,
 }
 
 impl GameState {
@@ -10,6 +18,8 @@ impl GameState {
         Self {
             current_index: None,
             legal_moves: 0,
+            previous_index: None,
+            current_array_index: None,
         }
     }
 
@@ -21,15 +31,17 @@ impl GameState {
     }
 }
 
-pub fn handle_game_state(game_state: &mut GameState, board_state: &mut BoardState) {
+pub fn handle_game_state(game_state: &mut GameState, board_state: &mut BoardState) -> MoveResult {
     if game_state.current_index.is_none() {
-        return;
+        return MoveResult::Idle;
     }
     if game_state.legal_moves != 0
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
-        println!("move piece over there");
+        board_state.move_piece(game_state);
+        return MoveResult::Move;
     } else {
         board_state.generate_legal_moves(game_state);
+        return MoveResult::Generate;
     }
 }
