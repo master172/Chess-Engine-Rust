@@ -63,7 +63,6 @@ impl Bishop {
             }
         };
 
-        println!("{}", my_side_checks);
         if my_side_checks > 1 {
             return 0;
         }
