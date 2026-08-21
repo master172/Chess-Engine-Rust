@@ -58,18 +58,21 @@ impl King {
         let mut pawn_map: u64;
         let pawn_index: usize;
         let knight_index: usize;
+        let evasion_mask: &mut u64;
 
         //then configure them
         if side == Sides::WHITE {
             checking_value = &mut game_state.white_checks;
             pawn_index = BP;
             knight_index = BN;
-            pawn_map = BLACK_PAWN_ATTACK_REFERENCE[index as usize]
+            pawn_map = BLACK_PAWN_ATTACK_REFERENCE[index as usize];
+            evasion_mask = &mut game_state.white_evasion_mask;
         } else {
             checking_value = &mut game_state.black_checks;
             pawn_index = WP;
             knight_index = WN;
-            pawn_map = WHITE_PAWN_ATTACK_REFERENCE[index as usize]
+            pawn_map = WHITE_PAWN_ATTACK_REFERENCE[index as usize];
+            evasion_mask = &mut game_state.black_evasion_mask;
         };
         *checking_value = 0;
         // first we start with non slider checks
@@ -79,6 +82,7 @@ impl King {
             let index: u64 = pawn_map.trailing_zeros() as u64;
             if (1 << index) & board_representation[pawn_index] != 0 {
                 *checking_value += 1;
+                *evasion_mask |= (1 << index) as u64;
             }
             pawn_map &= pawn_map - 1;
         }
@@ -88,7 +92,8 @@ impl King {
         while knight_map != 0 {
             let index: u64 = knight_map.trailing_zeros() as u64;
             if (1 << index) & board_representation[knight_index] != 0 {
-                *checking_value += 1
+                *checking_value += 1;
+                *evasion_mask |= (1 << index) as u64;
             }
             knight_map &= knight_map - 1;
         }
@@ -102,7 +107,7 @@ impl King {
         let mut dangerous_squares: u64 = 0;
         match side {
             Sides::WHITE => dangerous_squares |= game_state.black_attacked,
-            Sides::BLACK => dangerous_squares |= game_state.white_aattacked,
+            Sides::BLACK => dangerous_squares |= game_state.white_attacked,
         };
         psuedo_legal_moves & !dangerous_squares
     }
@@ -131,6 +136,18 @@ impl King {
                 continue;
             } else {
                 generated |= add_pos(index, CARDINAL_SHIFTS[i], my_side)
+            }
+        }
+        generated
+    }
+
+    pub fn get_attacking_squares(index: u64) -> u64 {
+        let mut generated: u64 = 0;
+        for i in 0..8 {
+            if CARDINAL_CHECKS[i](index) == 0 {
+                continue;
+            } else {
+                generated |= 1 << (index as i32 + CARDINAL_SHIFTS[i])
             }
         }
         generated

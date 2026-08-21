@@ -128,7 +128,7 @@ fn debug_draw(game_state: &GameState) {
     let current_attacking_squares: &u64 = if game_state.current_side == WHITE {
         &game_state.black_attacked
     } else {
-        &game_state.white_aattacked
+        &game_state.white_attacked
     };
 
     draw_squares_from_num(*current_attacking_squares, RED);

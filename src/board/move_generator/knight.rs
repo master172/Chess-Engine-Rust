@@ -52,9 +52,7 @@ impl Knight {
         generated
     }
 
-    #[allow(dead_code)]
-    #[cfg(debug_assertions)]
-    pub fn pre_generate_single_attack_patterns(index: u64) -> u64 {
+    pub fn get_attacking_squares(index: u64) -> u64 {
         let file_and_rank: FileAndRank = get_file_and_rank(index as i32);
         let mut generated: u64 = 0;
         for i in REQUIRED {
@@ -64,9 +62,6 @@ impl Knight {
         generated
     }
 }
-
-#[allow(dead_code)]
-#[cfg(debug_assertions)]
 fn add_pos_no_details(file_and_rank: &FileAndRank, shift: &(i32, i32)) -> u64 {
     if !get_within_board(file_and_rank, shift) {
         return 0;

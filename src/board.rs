@@ -177,7 +177,7 @@ impl BoardState {
             BLACK_INDEXES
         };
         let current_attacks: &mut u64 = if side == Sides::WHITE {
-            &mut game_state.white_aattacked
+            &mut game_state.white_attacked
         } else {
             &mut game_state.black_attacked
         };
@@ -189,7 +189,7 @@ impl BoardState {
                 let (piece, side, _) = index_to_piece(board_index).unwrap();
 
                 *current_attacks |=
-                    piece.get_psuedo_legal_moves(index as u64, &self.board_representation, &side);
+                    piece.get_attacking_squares(index as u64, &self.board_representation, &side);
                 mask &= mask - 1;
             }
         }
