@@ -116,7 +116,7 @@ impl King {
             let index: u64 = pawn_map.trailing_zeros() as u64;
             if (1 << index) & board_representation[pawn_index] != 0 {
                 *checking_value += 1;
-                *evasion_mask |= (1 << index) as u64;
+                *evasion_mask |= 1u64 << index;
             }
             pawn_map &= pawn_map - 1;
         }
@@ -127,7 +127,7 @@ impl King {
             let index: u64 = knight_map.trailing_zeros() as u64;
             if (1 << index) & board_representation[knight_index] != 0 {
                 *checking_value += 1;
-                *evasion_mask |= (1 << index) as u64;
+                *evasion_mask |= 1u64 << index;
             }
             knight_map &= knight_map - 1;
         }
