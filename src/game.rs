@@ -12,6 +12,8 @@ pub struct GameState {
     pub black_attacked: u64,
     pub white_aattacked: u64,
 
+    pub white_checks: u32,
+    pub black_checks: u32,
     //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
@@ -36,6 +38,8 @@ impl GameState {
             black_attacked: 0,
             white_aattacked: 0,
             current_side: side,
+            white_checks: 0,
+            black_checks: 0,
         }
     }
 

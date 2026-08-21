@@ -17,6 +17,7 @@ mod board;
 mod fen_engine;
 mod game;
 mod input;
+pub mod lookup_helpers;
 mod piece_textures;
 mod renderer;
 
@@ -36,8 +37,23 @@ fn game_conf() -> Conf {
     }
 }
 
+//the only reason this code exsits is to help pregenerate some lookup tables
+
+//fn balck_pawn_helpers() {
+//    let mut data: String = String::from("pub const BLACK_PAWN_ATTACK_REFERENCE: [u64;64] = [ ");
+//    for i in 0..64 {
+//        data.push_str(&format!(
+//            "{},",
+//            Pawn::get_attacking_squares(i, &board::pieces::Sides::WHITE)
+//        ));
+//    }
+//    data.push_str("];");
+//    fs::write("output.txt", data).unwrap();
+//}
+
 #[macroquad::main(game_conf)]
 async fn main() {
+    //balck_pawn_helpers();
     // all of this is just setup
     // first the env variables processing
     let mut starting_string: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -56,8 +72,8 @@ async fn main() {
 
     let mut game_state: GameState = GameState::new(dev_mode, board_state.side_to_start);
 
-    board_state.set_attacked_squares(game_state.current_side.flip(), &mut game_state);
-
+    board_state.set_attacked_squares(board_state.side_to_start.flip(), &mut game_state);
+    board_state.handle_king_saftey(board_state.side_to_start, &mut game_state);
     //loading textures and starting setting up input packages
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {

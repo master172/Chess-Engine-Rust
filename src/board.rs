@@ -1,6 +1,7 @@
 use crate::{
     GameState,
     board::{
+        move_generator::king::King,
         piece_definitions::{BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK},
         pieces::{
             Piece,
@@ -149,12 +150,26 @@ impl BoardState {
         }
 
         self.set_attacked_squares(side, game_state);
+        self.handle_king_saftey(side.flip(), game_state);
+
         self.reset_necessary_game_state_variables(game_state);
         if game_state.dev_mode == false {
             game_state.current_side = game_state.current_side.flip();
         }
     }
 
+    // the side passed to it must be the side that is playing currently
+    pub fn handle_king_saftey(&self, side: Sides, game_state: &mut GameState) {
+        let king_index: usize = if side == Sides::WHITE { WK } else { BK };
+        let mut king_mask: u64 = self.board_representation[king_index];
+        while king_mask != 0 {
+            let index = king_mask.trailing_zeros();
+            King::king_saftey(index as u64, side, game_state, &self.board_representation);
+            king_mask &= king_mask - 1
+        }
+    }
+
+    // the side provided to this function must be the other side i.e the side that is not moving now
     pub fn set_attacked_squares(&self, side: Sides, game_state: &mut GameState) {
         let current_indexes: [usize; 6] = if side == Sides::WHITE {
             WHITE_INDEXES

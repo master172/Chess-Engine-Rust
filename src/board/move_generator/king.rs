@@ -1,5 +1,6 @@
 use crate::{
     board::{
+        BN, BP, WN, WP,
         move_generator::{
             get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_bottom_left,
             get_to_bottom_right, get_to_left, get_to_right, get_to_top, get_to_top_left,
@@ -8,6 +9,9 @@ use crate::{
         pieces::Sides,
     },
     game::GameState,
+    lookup_helpers::{
+        BLACK_PAWN_ATTACK_REFERENCE, KNIGHT_ATTACK_REFERENCE, WHITE_PAWN_ATTACK_REFERENCE,
+    },
 };
 
 pub struct King {}
@@ -33,11 +37,68 @@ impl King {
     ) -> u64 {
         let psuedo_legal_moves: u64 =
             Self::get_psuedo_legal_moves(index, board_representation, side);
-        let legal_moves: u64 = Self::king_saftey(psuedo_legal_moves, side, game_state);
+        let legal_moves: u64 = Self::safe_square_gen(psuedo_legal_moves, side, game_state);
         legal_moves
     }
 
-    pub fn king_saftey(psuedo_legal_moves: u64, side: &Sides, game_state: &GameState) -> u64 {
+    /// the most important function this is the function that allows the seperation from psuedo legal moves to legal moves
+    /// this is done by keeping king saftey in mind while doing each move and the knig saftey associated values are to be configured
+    /// by the king
+    /// important here index does not represent its bitmask position but rather its index on the board
+    pub fn king_saftey(
+        index: u64,
+        side: Sides,
+        game_state: &mut GameState,
+        board_representation: &[u64; 12],
+    ) {
+        // for the pre setup turn the index 0 to 63 to a bit mask position
+        let bitmask_pos: u64 = 1 << index;
+        // first start with declaring all necessary side dependent variables
+        let checking_value: &mut u32;
+        let mut pawn_map: u64;
+        let pawn_index: usize;
+        let knight_index: usize;
+
+        //then configure them
+        if side == Sides::WHITE {
+            checking_value = &mut game_state.white_checks;
+            pawn_index = BP;
+            knight_index = BN;
+            pawn_map = BLACK_PAWN_ATTACK_REFERENCE[index as usize]
+        } else {
+            checking_value = &mut game_state.black_checks;
+            pawn_index = WP;
+            knight_index = WN;
+            pawn_map = WHITE_PAWN_ATTACK_REFERENCE[index as usize]
+        };
+        *checking_value = 0;
+        // first we start with non slider checks
+
+        // starting with pawns
+        while pawn_map != 0 {
+            let index: u64 = pawn_map.trailing_zeros() as u64;
+            if (1 << index) & board_representation[pawn_index] != 0 {
+                *checking_value += 1;
+            }
+            pawn_map &= pawn_map - 1;
+        }
+
+        //now for knights
+        let mut knight_map: u64 = KNIGHT_ATTACK_REFERENCE[index as usize];
+        while knight_map != 0 {
+            let index: u64 = knight_map.trailing_zeros() as u64;
+            if (1 << index) & board_representation[knight_index] != 0 {
+                *checking_value += 1
+            }
+            knight_map &= knight_map - 1;
+        }
+
+        // this should handle all checks of non sliding pieces these checks are special since no pins can be made
+        // and the evasion mask is simply the checking pieces position
+        // the next part is purely for checks from sliding pieces
+    }
+
+    pub fn safe_square_gen(psuedo_legal_moves: u64, side: &Sides, game_state: &GameState) -> u64 {
         let mut dangerous_squares: u64 = 0;
         match side {
             Sides::WHITE => dangerous_squares |= game_state.black_attacked,

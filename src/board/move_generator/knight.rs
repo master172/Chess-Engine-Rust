@@ -51,6 +51,30 @@ impl Knight {
 
         generated
     }
+
+    #[allow(dead_code)]
+    #[cfg(debug_assertions)]
+    pub fn pre_generate_single_attack_patterns(index: u64) -> u64 {
+        let file_and_rank: FileAndRank = get_file_and_rank(index as i32);
+        let mut generated: u64 = 0;
+        for i in REQUIRED {
+            generated = generated | add_pos_no_details(&file_and_rank, &i)
+        }
+
+        generated
+    }
+}
+
+#[allow(dead_code)]
+#[cfg(debug_assertions)]
+fn add_pos_no_details(file_and_rank: &FileAndRank, shift: &(i32, i32)) -> u64 {
+    if !get_within_board(file_and_rank, shift) {
+        return 0;
+    }
+    let converted_file_and_rank: FileAndRank =
+        FileAndRank::new(file_and_rank.file + shift.0, file_and_rank.rank + shift.1);
+    let converted_file_and_rank: u64 = file_and_rank_to_index(converted_file_and_rank) as u64;
+    return 1 << converted_file_and_rank;
 }
 
 fn add_pos(file_and_rank: &FileAndRank, shift: &(i32, i32), my_side: u64) -> u64 {
