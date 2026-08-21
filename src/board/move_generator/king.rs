@@ -159,7 +159,9 @@ impl King {
                             game_state.pin_mask[pin_mask.trailing_zeros() as usize] = acquired_mask;
                             break 'ray_loop;
                         } else {
-                            *my_mask |= 1 << (index as i32 - CARDINAL_SHIFTS[check_index]);
+                            if CARDINAL_CHECKS[7 - check_index](index) != 0 {
+                                *my_mask |= 1 << (index as i32 - CARDINAL_SHIFTS[check_index]);
+                            }
                             *checking_value += 1;
                             *evasion_mask |= acquired_mask;
                             break 'ray_loop;

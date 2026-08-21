@@ -26,7 +26,7 @@ impl Rook {
         if (1 << index) & game_state.pin_index_mask != 0 {
             pin_mask = game_state.pin_mask[index as usize];
         } else {
-            pin_mask = 0;
+            pin_mask = !0;
         }
         psuedo_legal_moves = psuedo_legal_moves & pin_mask;
         psuedo_legal_moves
