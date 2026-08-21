@@ -17,6 +17,9 @@ pub struct GameState {
 
     pub white_evasion_mask: u64,
     pub black_evasion_mask: u64,
+
+    pub pin_index_mask: u64,
+    pub pin_mask: [u64; 64],
     //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
@@ -45,6 +48,8 @@ impl GameState {
             black_checks: 0,
             white_evasion_mask: 0,
             black_evasion_mask: 0,
+            pin_index_mask: 0,
+            pin_mask: [0; 64],
         }
     }
 
