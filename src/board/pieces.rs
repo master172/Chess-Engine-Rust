@@ -1,5 +1,6 @@
-use crate::board::move_generator::{
-    bishop::Bishop, king::King, knight::Knight, pawn::Pawn, rook::Rook,
+use crate::{
+    board::move_generator::{bishop::Bishop, king::King, knight::Knight, pawn::Pawn, rook::Rook},
+    game::GameState,
 };
 
 pub enum MoveGenerators {
@@ -35,10 +36,11 @@ impl Piece {
         index: u64,
         board_representation: &[u64; 12],
         side: &Sides,
+        game_state: &GameState,
     ) -> u64 {
         let mut generated: u64 = 0;
         for i in self.generators {
-            generated = generated | i.get_moves(index, board_representation, side);
+            generated = generated | i.get_moves(index, board_representation, side, game_state);
         }
         generated
     }
@@ -58,9 +60,15 @@ impl Piece {
 }
 
 impl MoveGenerators {
-    fn get_moves(&self, index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+    fn get_moves(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &GameState,
+    ) -> u64 {
         match &self {
-            MoveGenerators::King => King::gen_moves(index, board_representation, side),
+            MoveGenerators::King => King::gen_moves(index, board_representation, side, game_state),
             MoveGenerators::Bishop => Bishop::gen_moves(index, board_representation, side),
             MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
             MoveGenerators::Knight => Knight::gen_moves(index, board_representation, side),

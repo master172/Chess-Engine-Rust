@@ -101,6 +101,7 @@ impl BoardState {
             game_state.current_index.unwrap() as u64,
             &self.board_representation,
             &side,
+            &game_state,
         );
     }
 

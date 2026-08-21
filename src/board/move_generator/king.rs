@@ -1,10 +1,13 @@
-use crate::board::{
-    move_generator::{
-        get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_bottom_left,
-        get_to_bottom_right, get_to_left, get_to_right, get_to_top, get_to_top_left,
-        get_to_top_right,
+use crate::{
+    board::{
+        move_generator::{
+            get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_bottom_left,
+            get_to_bottom_right, get_to_left, get_to_right, get_to_top, get_to_top_left,
+            get_to_top_right,
+        },
+        pieces::Sides,
     },
-    pieces::Sides,
+    game::GameState,
 };
 
 pub struct King {}
@@ -22,10 +25,25 @@ const CARDINAL_CHECKS: [fn(u64) -> usize; 8] = [
 ];
 
 impl King {
-    pub fn gen_moves(index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+    pub fn gen_moves(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &GameState,
+    ) -> u64 {
         let psuedo_legal_moves: u64 =
             Self::get_psuedo_legal_moves(index, board_representation, side);
-        psuedo_legal_moves
+        let legal_moves: u64 = Self::king_saftey(psuedo_legal_moves, side, game_state);
+        legal_moves
+    }
+
+    pub fn king_saftey(psuedo_legal_moves: u64, side: &Sides, game_state: &GameState) -> u64 {
+        let mut dangerous_squares: u64 = 0;
+        match side {
+            Sides::WHITE => dangerous_squares |= game_state.black_attacked,
+            Sides::BLACK => dangerous_squares |= game_state.white_aattacked,
+        };
+        psuedo_legal_moves & !dangerous_squares
     }
 
     pub fn get_psuedo_legal_moves(
