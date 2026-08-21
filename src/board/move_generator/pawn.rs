@@ -12,6 +12,16 @@ const WHITE_STARTING_SQUARES: u64 = 0x0000_0000_0000_FF00; // White pawn startin
 const BLACK_STARTING_SQUARES: u64 = 0x00FF_0000_0000_0000; // Black pawn starting rank (bits 48–55)
 impl Pawn {
     pub fn gen_moves(index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+        let psuedo_legal_moves: u64 =
+            Self::get_psuedo_legal_moves(index, board_representation, side);
+        psuedo_legal_moves
+    }
+
+    pub fn get_psuedo_legal_moves(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+    ) -> u64 {
         let black_pieces: u64 = get_all_black_pieces(board_representation);
         let white_pieces: u64 = get_all_white_pieces(board_representation);
 
@@ -30,6 +40,16 @@ impl Pawn {
         generated = generated | add_foward_pos(index, side, board_representation);
         generated = generated | add_attack_left_pos(index, side, enemy_side);
         generated = generated | add_attack_right_pos(index, side, enemy_side);
+
+        generated
+    }
+
+    // for the pawns the attacking squares are different form their psuedo legal pre king saftey moves
+    // so we have to process them seperately
+    pub fn get_attacking_squares(index: u64, side: &Sides) -> u64 {
+        let mut generated: u64 = 0;
+        generated = generated | get_attack_left_pos(index, side);
+        generated = generated | get_attack_right_pos(index, side);
 
         generated
     }

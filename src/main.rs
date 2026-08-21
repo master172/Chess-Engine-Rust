@@ -3,12 +3,14 @@ use std::env;
 use macroquad::prelude::*;
 
 use crate::{
-    board::BoardState,
+    board::{BoardState, pieces::Sides::WHITE},
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state},
     input::InputPackage,
     piece_textures::{PieceTextures, load_all_textures},
-    renderer::{draw_legal_squares, handle_overlays, render_board, render_pieces},
+    renderer::{
+        draw_legal_squares, draw_squares_from_num, handle_overlays, render_board, render_pieces,
+    },
 };
 
 mod board;
@@ -25,12 +27,19 @@ fn game_conf() -> Conf {
         window_height: 720,
         high_dpi: true,
         window_resizable: false,
+
+        //platform: miniquad::conf::Platform {
+        //    swap_interval: Some(0),
+        //    ..Default::default()
+        //},
         ..Default::default()
     }
 }
 
 #[macroquad::main(game_conf)]
 async fn main() {
+    // all of this is just setup
+    // first the env variables processing
     let mut starting_string: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     let mut dev_mode: bool = false;
     let args: Vec<String> = env::args().collect();
@@ -41,19 +50,27 @@ async fn main() {
     if args.len() > 2 {
         dev_mode = args[2].parse::<bool>().unwrap_or(false);
     }
+
+    // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
 
     let mut game_state: GameState = GameState::new(dev_mode, board_state.side_to_start);
 
+    board_state.set_attacked_squares(game_state.current_side.flip(), &mut game_state);
+
+    //loading textures and starting setting up input packages
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {
         left_mouse_index: None,
     };
+
+    //here is the actual game loop logic
     loop {
         //println!("{}", get_fps());
         render_board();
         process_input(&mut input_package, &mut game_state, &mut board_state);
         draw_legal_squares(&game_state);
+        //debug_draw(&game_state);
         render_pieces(&board_state, &piece_textures);
         next_frame().await;
     }
@@ -87,4 +104,16 @@ fn process_input(
         }
         None => (),
     }
+}
+
+#[allow(dead_code)]
+#[cfg(debug_assertions)]
+fn debug_draw(game_state: &GameState) {
+    let current_attacking_squares: &u64 = if game_state.current_side == WHITE {
+        &game_state.black_attacked
+    } else {
+        &game_state.white_aattacked
+    };
+
+    draw_squares_from_num(*current_attacking_squares, RED);
 }

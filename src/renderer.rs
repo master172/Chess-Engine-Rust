@@ -165,3 +165,18 @@ pub fn draw_legal_squares(game_state: &GameState) {
         mask &= mask - 1;
     }
 }
+
+#[allow(dead_code)]
+#[cfg(debug_assertions)]
+pub fn draw_squares_from_num(num: u64, color: Color) {
+    if num == 0 {
+        return;
+    }
+    let mut num = num;
+    while num != 0 {
+        let index = num.trailing_zeros();
+        draw_overlay_square(index as i32, color);
+        // subtracting 1 turns all 0's before the first 1 to 1 and the first 1 to 0 the and removes all of them
+        num &= num - 1;
+    }
+}

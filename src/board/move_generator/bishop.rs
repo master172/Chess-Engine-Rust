@@ -10,6 +10,16 @@ pub struct Bishop {}
 
 impl Bishop {
     pub fn gen_moves(index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+        let psuedo_legal_moves: u64 =
+            Self::get_psuedo_legal_moves(index, board_representation, side);
+        psuedo_legal_moves
+    }
+
+    pub fn get_psuedo_legal_moves(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+    ) -> u64 {
         let black_pieces: u64 = get_all_black_pieces(board_representation);
         let white_pieces: u64 = get_all_white_pieces(board_representation);
 

@@ -4,9 +4,15 @@ use crate::{
 };
 
 pub struct GameState {
+    //setup values
     pub dev_mode: bool,
     pub current_side: Sides,
 
+    //king saftey values
+    pub black_attacked: u64,
+    pub white_aattacked: u64,
+
+    //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
     pub current_array_index: Option<usize>,
@@ -27,6 +33,8 @@ impl GameState {
             previous_index: None,
             current_array_index: None,
             dev_mode,
+            black_attacked: 0,
+            white_aattacked: 0,
             current_side: side,
         }
     }

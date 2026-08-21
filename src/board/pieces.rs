@@ -42,6 +42,19 @@ impl Piece {
         }
         generated
     }
+
+    pub fn get_psuedo_legal_moves(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+    ) -> u64 {
+        let mut generated: u64 = 0;
+        for i in self.generators {
+            generated = generated | i.get_psuedo_legal_moves(index, board_representation, side);
+        }
+        generated
+    }
 }
 
 impl MoveGenerators {
@@ -52,6 +65,25 @@ impl MoveGenerators {
             MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
             MoveGenerators::Knight => Knight::gen_moves(index, board_representation, side),
             MoveGenerators::Pawn => Pawn::gen_moves(index, board_representation, side),
+        }
+    }
+
+    pub fn get_psuedo_legal_moves(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+    ) -> u64 {
+        match &self {
+            MoveGenerators::King => King::get_psuedo_legal_moves(index, board_representation, side),
+            MoveGenerators::Bishop => {
+                Bishop::get_psuedo_legal_moves(index, board_representation, side)
+            }
+            MoveGenerators::Rook => Rook::get_psuedo_legal_moves(index, board_representation, side),
+            MoveGenerators::Knight => {
+                Knight::get_psuedo_legal_moves(index, board_representation, side)
+            }
+            MoveGenerators::Pawn => Pawn::get_attacking_squares(index, side),
         }
     }
 }

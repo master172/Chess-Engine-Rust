@@ -49,8 +49,8 @@ pub const WB: usize = 10;
 ///index of black bishops
 pub const BB: usize = 11;
 
-const BLACK_INDEXES: [usize; 6] = [BK, BQ, BN, BR, BB, BP];
-const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
+pub const BLACK_INDEXES: [usize; 6] = [BK, BQ, BN, BR, BB, BP];
+pub const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
 
 #[derive(Debug)]
 pub struct BoardState {
@@ -147,9 +147,35 @@ impl BoardState {
             }
         }
 
+        self.set_attacked_squares(side, game_state);
         self.reset_necessary_game_state_variables(game_state);
         if game_state.dev_mode == false {
             game_state.current_side = game_state.current_side.flip();
+        }
+    }
+
+    pub fn set_attacked_squares(&self, side: Sides, game_state: &mut GameState) {
+        let current_indexes: [usize; 6] = if side == Sides::WHITE {
+            WHITE_INDEXES
+        } else {
+            BLACK_INDEXES
+        };
+        let current_attacks: &mut u64 = if side == Sides::WHITE {
+            &mut game_state.white_aattacked
+        } else {
+            &mut game_state.black_attacked
+        };
+        *current_attacks = 0;
+        for board_index in current_indexes {
+            let mut mask: u64 = self.board_representation[board_index];
+            while mask != 0 {
+                let index = mask.trailing_zeros();
+                let (piece, side, _) = index_to_piece(board_index).unwrap();
+
+                *current_attacks |=
+                    piece.get_psuedo_legal_moves(index as u64, &self.board_representation, &side);
+                mask &= mask - 1;
+            }
         }
     }
 }
