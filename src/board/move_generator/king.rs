@@ -156,8 +156,7 @@ impl King {
                     if board_representation[possible_attackers_index] & target_bit_mask != 0 {
                         if pin_mask != 0 {
                             game_state.pin_index_mask |= pin_mask;
-                            game_state.pin_mask[target_bit_mask.trailing_zeros() as usize] =
-                                acquired_mask;
+                            game_state.pin_mask[pin_mask.trailing_zeros() as usize] = acquired_mask;
                             break 'ray_loop;
                         } else {
                             *my_mask |= 1 << (index as i32 - CARDINAL_SHIFTS[check_index]);

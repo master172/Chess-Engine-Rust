@@ -27,8 +27,17 @@ impl Knight {
         side: &Sides,
         game_state: &GameState,
     ) -> u64 {
-        let psuedo_legal_moves: u64 =
+        let mut psuedo_legal_moves: u64 =
             Self::get_psuedo_legal_moves(index, board_representation, side, game_state);
+
+        let pin_mask: u64;
+        if (1 << index) & game_state.pin_index_mask != 0 {
+            pin_mask = game_state.pin_mask[index as usize];
+        } else {
+            pin_mask = 0;
+        }
+        psuedo_legal_moves = psuedo_legal_moves & pin_mask;
+
         psuedo_legal_moves
     }
 
