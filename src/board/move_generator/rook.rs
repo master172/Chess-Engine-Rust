@@ -45,16 +45,19 @@ impl Rook {
         let enemy_side: u64;
 
         let my_side_checks: u32;
+        let my_side_evasion_mask: u64;
         match side {
             Sides::BLACK => {
                 my_side = black_pieces;
                 enemy_side = white_pieces;
                 my_side_checks = game_state.black_checks;
+                my_side_evasion_mask = game_state.black_evasion_mask;
             }
             Sides::WHITE => {
                 my_side = white_pieces;
                 enemy_side = black_pieces;
                 my_side_checks = game_state.white_checks;
+                my_side_evasion_mask = game_state.white_evasion_mask;
             }
         };
 
@@ -107,6 +110,10 @@ impl Rook {
                 SELF_SIDE_NON_INCLUSIVE,
             )
             .unwrap();
+
+        if my_side_checks == 1 {
+            generated &= my_side_evasion_mask;
+        }
 
         generated
     }
