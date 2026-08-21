@@ -18,6 +18,9 @@ pub struct GameState {
     pub white_evasion_mask: u64,
     pub black_evasion_mask: u64,
 
+    pub white_king_mask: u64,
+    pub black_king_mask: u64,
+
     pub pin_index_mask: u64,
     pub pin_mask: [u64; 64],
     //move gen values
@@ -50,6 +53,8 @@ impl GameState {
             black_evasion_mask: 0,
             pin_index_mask: 0,
             pin_mask: [0; 64],
+            white_king_mask: 0,
+            black_king_mask: 0,
         }
     }
 

@@ -56,7 +56,7 @@ impl King {
         game_state: &GameState,
     ) -> u64 {
         let psuedo_legal_moves: u64 =
-            Self::get_psuedo_legal_moves(index, board_representation, side);
+            Self::get_psuedo_legal_moves(index, board_representation, side, game_state);
         let legal_moves: u64 = Self::safe_square_gen(psuedo_legal_moves, side, game_state);
         legal_moves
     }
@@ -81,6 +81,7 @@ impl King {
         let evasion_mask: &mut u64;
         let blockers_mask: u64;
         let relevant_attackers: &[[usize; 2]; 8];
+        let my_mask: &mut u64;
         //then configure them
         if side == Sides::WHITE {
             checking_value = &mut game_state.white_checks;
@@ -90,6 +91,7 @@ impl King {
             evasion_mask = &mut game_state.white_evasion_mask;
             relevant_attackers = &CARDINAL_RELEVANT_BLACKS;
             blockers_mask = get_all_white_pieces(board_representation);
+            my_mask = &mut game_state.white_king_mask;
         } else {
             checking_value = &mut game_state.black_checks;
             pawn_index = WP;
@@ -98,6 +100,7 @@ impl King {
             evasion_mask = &mut game_state.black_evasion_mask;
             relevant_attackers = &CARDINAL_RELEVANT_WHITES;
             blockers_mask = get_all_black_pieces(board_representation);
+            my_mask = &mut game_state.black_king_mask;
         };
         // it is also necessary that we reset game state variables before calculating them
         // since we do a full calc each time we can just reset all of them no problem
@@ -105,6 +108,7 @@ impl King {
         game_state.pin_index_mask = 0;
         *evasion_mask = 0;
         *checking_value = 0;
+        *my_mask = 0;
         // first we start with non slider checks
 
         // starting with pawns
@@ -156,6 +160,7 @@ impl King {
                                 acquired_mask;
                             break 'ray_loop;
                         } else {
+                            *my_mask |= 1 << (index as i32 - CARDINAL_SHIFTS[check_index]);
                             *checking_value += 1;
                             *evasion_mask |= acquired_mask;
                             break 'ray_loop;
@@ -188,18 +193,21 @@ impl King {
         index: u64,
         board_representation: &[u64; 12],
         side: &Sides,
+        game_state: &GameState,
     ) -> u64 {
         let black_pieces: u64 = get_all_black_pieces(board_representation);
         let white_pieces: u64 = get_all_white_pieces(board_representation);
 
         let my_side: u64;
-
+        let my_mask: u64;
         match side {
             Sides::BLACK => {
                 my_side = black_pieces;
+                my_mask = game_state.black_king_mask;
             }
             Sides::WHITE => {
                 my_side = white_pieces;
+                my_mask = game_state.white_king_mask;
             }
         };
         let mut generated: u64 = 0;
@@ -210,6 +218,7 @@ impl King {
                 generated |= add_pos(index, CARDINAL_SHIFTS[i], my_side)
             }
         }
+        generated &= !my_mask;
         generated
     }
 
