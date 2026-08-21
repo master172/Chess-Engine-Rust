@@ -1,17 +1,26 @@
-use crate::board::{
-    move_generator::{
-        SELF_SIDE_ICLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces, get_all_white_pieces,
-        get_to_bottom, get_to_left, get_to_right, get_to_top, to_direction,
+use crate::{
+    board::{
+        move_generator::{
+            SELF_SIDE_ICLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces,
+            get_all_white_pieces, get_to_bottom, get_to_left, get_to_right, get_to_top,
+            to_direction,
+        },
+        pieces::Sides,
     },
-    pieces::Sides,
+    game::GameState,
 };
 
 pub struct Rook {}
 
 impl Rook {
-    pub fn gen_moves(index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+    pub fn gen_moves(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &GameState,
+    ) -> u64 {
         let psuedo_legal_moves: u64 =
-            Self::get_psuedo_legal_moves(index, board_representation, side);
+            Self::get_psuedo_legal_moves(index, board_representation, side, game_state);
         psuedo_legal_moves
     }
 
@@ -19,6 +28,7 @@ impl Rook {
         index: u64,
         board_representation: &[u64; 12],
         side: &Sides,
+        game_state: &GameState,
     ) -> u64 {
         let black_pieces: u64 = get_all_black_pieces(board_representation);
         let white_pieces: u64 = get_all_white_pieces(board_representation);
@@ -26,16 +36,23 @@ impl Rook {
         let my_side: u64;
         let enemy_side: u64;
 
+        let my_side_checks: u32;
         match side {
             Sides::BLACK => {
                 my_side = black_pieces;
                 enemy_side = white_pieces;
+                my_side_checks = game_state.black_checks;
             }
             Sides::WHITE => {
                 my_side = white_pieces;
                 enemy_side = black_pieces;
+                my_side_checks = game_state.white_checks;
             }
         };
+
+        if my_side_checks > 1 {
+            return 0;
+        }
         let mut generated: u64 = 0;
 
         //top check the spot 8 bits foward to self index

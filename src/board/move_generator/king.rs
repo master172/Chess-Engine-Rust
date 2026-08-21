@@ -142,7 +142,7 @@ impl King {
             let mut acquired_mask: u64 = 0;
             let relevant_attackers_array: [usize; 2] = relevant_attackers[check_index];
             //this is the loop that projects a ray in each direction
-            'ray_loop: for i in 1..max_dist {
+            'ray_loop: for i in 1..=max_dist {
                 let target_bit_mask: u64 =
                     1 << (index as i32 + (CARDINAL_SHIFTS[check_index] * i as i32)) as i32;
                 acquired_mask |= target_bit_mask;
@@ -158,6 +158,7 @@ impl King {
                         } else {
                             *checking_value += 1;
                             *evasion_mask |= acquired_mask;
+                            break 'ray_loop;
                         }
                     }
                 }

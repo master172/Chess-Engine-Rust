@@ -1,9 +1,12 @@
-use crate::board::{
-    move_generator::{
-        get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_left, get_to_right,
-        get_to_top,
+use crate::{
+    board::{
+        move_generator::{
+            get_all_black_pieces, get_all_white_pieces, get_to_bottom, get_to_left, get_to_right,
+            get_to_top,
+        },
+        pieces::Sides,
     },
-    pieces::Sides,
+    game::GameState,
 };
 
 pub struct Pawn {}
@@ -11,9 +14,14 @@ pub struct Pawn {}
 const WHITE_STARTING_SQUARES: u64 = 0x0000_0000_0000_FF00; // White pawn starting rank (bits 8–15)
 const BLACK_STARTING_SQUARES: u64 = 0x00FF_0000_0000_0000; // Black pawn starting rank (bits 48–55)
 impl Pawn {
-    pub fn gen_moves(index: u64, board_representation: &[u64; 12], side: &Sides) -> u64 {
+    pub fn gen_moves(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &GameState,
+    ) -> u64 {
         let psuedo_legal_moves: u64 =
-            Self::get_psuedo_legal_moves(index, board_representation, side);
+            Self::get_psuedo_legal_moves(index, board_representation, side, game_state);
         psuedo_legal_moves
     }
 
@@ -21,20 +29,29 @@ impl Pawn {
         index: u64,
         board_representation: &[u64; 12],
         side: &Sides,
+        game_state: &GameState,
     ) -> u64 {
         let black_pieces: u64 = get_all_black_pieces(board_representation);
         let white_pieces: u64 = get_all_white_pieces(board_representation);
 
         let enemy_side: u64;
+        let my_side_checks: u32;
 
         match side {
             Sides::BLACK => {
                 enemy_side = white_pieces;
+                my_side_checks = game_state.black_checks;
             }
             Sides::WHITE => {
                 enemy_side = black_pieces;
+                my_side_checks = game_state.white_checks;
             }
         };
+
+        if my_side_checks > 1 {
+            return 0;
+        }
+
         let mut generated: u64 = 0;
         generated = generated | add_foward_double_pos(index, side, board_representation);
         generated = generated | add_foward_pos(index, side, board_representation);

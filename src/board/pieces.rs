@@ -69,10 +69,14 @@ impl MoveGenerators {
     ) -> u64 {
         match &self {
             MoveGenerators::King => King::gen_moves(index, board_representation, side, game_state),
-            MoveGenerators::Bishop => Bishop::gen_moves(index, board_representation, side),
-            MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side),
-            MoveGenerators::Knight => Knight::gen_moves(index, board_representation, side),
-            MoveGenerators::Pawn => Pawn::gen_moves(index, board_representation, side),
+            MoveGenerators::Bishop => {
+                Bishop::gen_moves(index, board_representation, side, game_state)
+            }
+            MoveGenerators::Rook => Rook::gen_moves(index, board_representation, side, game_state),
+            MoveGenerators::Knight => {
+                Knight::gen_moves(index, board_representation, side, game_state)
+            }
+            MoveGenerators::Pawn => Pawn::gen_moves(index, board_representation, side, game_state),
         }
     }
 
