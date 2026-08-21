@@ -3,7 +3,7 @@ use chess::{FileAndRank, get_file_and_rank};
 use std::cmp::min;
 
 pub const SELF_SIDE_NON_INCLUSIVE: bool = false;
-pub const SELF_SIDE_ICLUSIVE: bool = false;
+pub const SELF_SIDE_INCLUSIVE: bool = true;
 
 pub mod bishop;
 pub mod king;
@@ -48,12 +48,14 @@ fn to_direction(
         } else {
             return None;
         }
-        let my_side_bit_mask: u64 = if !inclusive { target_bit_mask } else { 0 };
+        let my_side_bit_mask: u64 = if inclusive { target_bit_mask } else { 0 };
         if target_bit_mask & enemy_side != 0 {
             generated = generated | target_bit_mask;
             break;
         } else if target_bit_mask & my_side != 0 {
+            //if inclusive {
             generated = generated | my_side_bit_mask;
+            //}
             break;
         } else {
             generated = generated | target_bit_mask

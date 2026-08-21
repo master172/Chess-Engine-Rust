@@ -1,7 +1,7 @@
 use crate::{
     board::{
         move_generator::{
-            SELF_SIDE_ICLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces,
+            SELF_SIDE_INCLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces,
             get_all_white_pieces, get_to_bottom_left, get_to_bottom_right, get_to_top_left,
             get_to_top_right, to_direction,
         },
@@ -135,7 +135,7 @@ impl Bishop {
                 7,
                 index,
                 get_to_top_left,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //top_right check the spot 9 bits forward to self index
@@ -146,7 +146,7 @@ impl Bishop {
                 9,
                 index,
                 get_to_top_right,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //bottom_left check the spot 9 bits backward to self index
@@ -157,7 +157,7 @@ impl Bishop {
                 -9,
                 index,
                 get_to_bottom_left,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //bottom_right check the spot 7 bits foward to self index
@@ -168,7 +168,7 @@ impl Bishop {
                 -7,
                 index,
                 get_to_bottom_right,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
 

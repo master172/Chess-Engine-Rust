@@ -1,7 +1,7 @@
 use crate::{
     board::{
         move_generator::{
-            SELF_SIDE_ICLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces,
+            SELF_SIDE_INCLUSIVE, SELF_SIDE_NON_INCLUSIVE, get_all_black_pieces,
             get_all_white_pieces, get_to_bottom, get_to_left, get_to_right, get_to_top,
             to_direction,
         },
@@ -134,7 +134,7 @@ impl Rook {
                 8,
                 index,
                 get_to_top,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //left check the spot 1 bit backward to self index
@@ -145,7 +145,7 @@ impl Rook {
                 -1,
                 index,
                 get_to_left,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //right check the spot 1 bit foward to self index
@@ -156,7 +156,7 @@ impl Rook {
                 1,
                 index,
                 get_to_right,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
         //bottom check the spot 8 bits foward to self index
@@ -167,7 +167,7 @@ impl Rook {
                 -8,
                 index,
                 get_to_bottom,
-                SELF_SIDE_ICLUSIVE,
+                SELF_SIDE_INCLUSIVE,
             )
             .unwrap();
 
