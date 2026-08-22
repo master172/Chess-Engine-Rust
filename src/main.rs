@@ -5,15 +5,13 @@ use crate::{
     ChessState::Regular,
     board::{
         BoardState,
-        pieces::Sides::{self, WHITE},
+        pieces::Sides::{self},
     },
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state, handle_promotion},
     input::{InputPackage, handle_promotion_input},
     piece_textures::{PieceTextures, load_all_textures},
-    renderer::{
-        draw_legal_squares, draw_squares_from_num, handle_overlays, render_board, render_pieces,
-    },
+    renderer::{draw_legal_squares, handle_overlays, render_board, render_pieces},
 };
 
 mod board;
@@ -154,16 +152,4 @@ fn process_input(
     }
 
     result
-}
-
-#[allow(dead_code)]
-#[cfg(debug_assertions)]
-fn debug_draw(game_state: &GameState) {
-    let current_attacking_squares: &u64 = if game_state.current_side == WHITE {
-        &game_state.black_attacked
-    } else {
-        &game_state.white_attacked
-    };
-
-    draw_squares_from_num(*current_attacking_squares, RED);
 }
