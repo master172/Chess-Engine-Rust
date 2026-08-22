@@ -187,10 +187,11 @@ impl King {
                             *evasion_mask |= acquired_mask;
                             break 'ray_loop;
                         }
-                    } else if all_opposing_pieces & target_bit_mask != 0 {
-                        *my_enemey_blockers |= target_bit_mask;
-                        break 'ray_loop;
                     }
+                }
+                if all_opposing_pieces & target_bit_mask != 0 {
+                    *my_enemey_blockers |= target_bit_mask;
+                    break 'ray_loop;
                 }
 
                 // comparitevly handling blockers is simple since we do not care about the type of blocker
