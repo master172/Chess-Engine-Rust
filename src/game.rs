@@ -31,6 +31,8 @@ pub struct GameState {
     pub en_passant_candidate_mask: u64,
     pub en_passant_mask: u64,
     pub en_passant_capture_mask: u64,
+
+    pub castling_rights: u8,
     //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
@@ -45,7 +47,7 @@ pub enum MoveResult {
 }
 
 impl GameState {
-    pub fn new(dev_mode: bool, side: Sides) -> Self {
+    pub fn new(dev_mode: bool, side: Sides, castling_rights: u8) -> Self {
         Self {
             current_index: None,
             legal_moves: 0,
@@ -68,6 +70,7 @@ impl GameState {
             en_passant_mask: 0,
             white_enemy_blockers: 0,
             black_enemy_blockers: 0,
+            castling_rights,
         }
     }
 

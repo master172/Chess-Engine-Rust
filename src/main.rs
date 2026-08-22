@@ -70,7 +70,11 @@ async fn main() {
     // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
 
-    let mut game_state: GameState = GameState::new(dev_mode, board_state.side_to_start);
+    let mut game_state: GameState = GameState::new(
+        dev_mode,
+        board_state.side_to_start,
+        board_state.castling_rights,
+    );
 
     board_state.set_attacked_squares(board_state.side_to_start.flip(), &mut game_state);
     board_state.handle_king_saftey(board_state.side_to_start, &mut game_state);

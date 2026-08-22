@@ -53,10 +53,14 @@ pub const BB: usize = 11;
 pub const BLACK_INDEXES: [usize; 6] = [BK, BQ, BN, BR, BB, BP];
 pub const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
 
+const BLACK_CASTLE_INVALIDATION_MASK: u64 = (1 << 63) | (1 << 56) | (1 << 60);
+const WHITE_CASTLE_INVALIDATION_MASK: u64 = (1 << 0) | (1 << 4) | (1 << 7);
+
 #[derive(Debug)]
 pub struct BoardState {
     pub board_representation: [u64; 12],
     pub side_to_start: Sides,
+    pub castling_rights: u8,
 }
 
 impl BoardState {
@@ -64,6 +68,7 @@ impl BoardState {
         Self {
             board_representation: [0; 12],
             side_to_start: side,
+            castling_rights: 0,
         }
     }
 
@@ -137,8 +142,9 @@ impl BoardState {
     pub fn handle_move_after_effects(
         &mut self,
         game_state: &mut GameState,
+        side: Sides,
         piece: Piece,
-        //prev_index: u64,
+        prev_index: u64,
         current_index: u64,
     ) {
         match piece {
@@ -157,6 +163,19 @@ impl BoardState {
                     game_state.en_passant_mask = 0;
                 }
             }
+            KING => {
+                let rook_index: usize = if side == Sides::WHITE { WR } else { BR };
+                match king_movment_to_rook_transposition(
+                    current_index as usize,
+                    game_state.castling_rights,
+                ) {
+                    None => (),
+                    Some((to, from)) => {
+                        self.board_representation[rook_index] &= !from;
+                        self.board_representation[rook_index] |= to;
+                    }
+                }
+            }
             _ => {
                 // cleanup in case a piece with no special moves associated with it moes
                 // they are reset to prevent state corruption
@@ -164,6 +183,17 @@ impl BoardState {
                 game_state.en_passant_candidate_mask = 0;
                 game_state.en_passant_mask = 0;
             }
+        }
+
+        if (1 << prev_index) & (BLACK_CASTLE_INVALIDATION_MASK | WHITE_CASTLE_INVALIDATION_MASK)
+            != 0
+        {
+            game_state.castling_rights &= !map_indexes_to_right_to_remove(prev_index as usize);
+        }
+        if (1 << current_index) & (BLACK_CASTLE_INVALIDATION_MASK | WHITE_CASTLE_INVALIDATION_MASK)
+            != 0
+        {
+            game_state.castling_rights &= !map_indexes_to_right_to_remove(current_index as usize);
         }
     }
 
@@ -192,8 +222,9 @@ impl BoardState {
         self.set_attacked_squares(side, game_state);
         self.handle_move_after_effects(
             game_state,
+            side,
             piece,
-            //game_state.previous_index.unwrap() as u64,
+            game_state.previous_index.unwrap() as u64,
             game_state.current_index.unwrap() as u64,
         );
         self.handle_king_saftey(side.flip(), game_state);
@@ -256,6 +287,46 @@ pub fn index_to_piece(index: usize) -> Option<(Piece, Sides, usize)> {
         BR => Some((ROOK, BLACK, index)),
         WN => Some((KNIGHT, WHITE, index)),
         BN => Some((KNIGHT, BLACK, index)),
+        _ => None,
+    }
+}
+
+fn map_indexes_to_right_to_remove(index: usize) -> u8 {
+    match index {
+        0 => 0b0000_0100,
+        4 => 0b0000_1100,
+        7 => 0b0000_1000,
+        56 => 0b0000_0001,
+        60 => 0b0000_0011,
+        63 => 0b0000_0010,
+        _ => 0,
+    }
+}
+
+fn king_movment_to_rook_transposition(index: usize, castling_rights: u8) -> Option<(u64, u64)> {
+    if destination_square_to_validation_int(index) & castling_rights == 0 {
+        return None;
+    }
+    destination_square_to_rook_transposition(index)
+}
+
+fn destination_square_to_validation_int(index: usize) -> u8 {
+    match index {
+        2 => 0b0000_0100,
+        6 => 0b0000_1000,
+        58 => 0b0000_0001,
+        62 => 0b0000_0010,
+        _ => 0,
+    }
+}
+
+//the first resultant int is the place the rook should move to and the second is where it should be removed from
+fn destination_square_to_rook_transposition(index: usize) -> Option<(u64, u64)> {
+    match index {
+        2 => Some((0x8, 0x1)),
+        6 => Some((0x20, 0x80)),
+        58 => Some((0x800000000000000, 0x100000000000000)),
+        62 => Some((0x2000000000000000, 0x8000000000000000)),
         _ => None,
     }
 }

@@ -54,6 +54,37 @@ pub fn fen_to_board_state(input: &str) -> BoardState {
         };
     }
 
+    //for castling rights bit 1 is black queen side, 2 is black king side, 3 is white queen side and 4 is white king side
+    match fen_parts[2] {
+        //white only
+        "K" => board_state.castling_rights = 0b0000_1000,
+        "Q" => board_state.castling_rights = 0b0000_0100,
+        "KQ" => board_state.castling_rights = 0b0000_1100,
+
+        //black only
+        "k" => board_state.castling_rights = 0b0000_0010,
+        "q" => board_state.castling_rights = 0b0000_0001,
+        "kq" => board_state.castling_rights = 0b0000_0011,
+
+        //mixed this should go K, Q, KQ, k, Kk, Qk, KQk, q, Kq, Qq, KQq, kq, Kkq, Qkq, KQkq - the ones we have done
+        "Kk" => board_state.castling_rights = 0b0000_1010,
+        "Qk" => board_state.castling_rights = 0b0000_0110,
+        "KQk" => board_state.castling_rights = 0b0000_1110,
+        "Kq" => board_state.castling_rights = 0b0000_1001,
+        "Qq" => board_state.castling_rights = 0b0000_0101,
+        "KQq" => board_state.castling_rights = 0b0000_1101,
+        "Kkq" => board_state.castling_rights = 0b0000_1011,
+        "Qkq" => board_state.castling_rights = 0b0000_0111,
+        //all
+        "KQkq" => board_state.castling_rights = 0b0000_1111,
+        //anything else
+        "-" => board_state.castling_rights = 0b0000_0000,
+        _ => {
+            eprintln!("invalid castlign rights");
+            board_state.castling_rights = 0b0000_0000
+        }
+    }
+
     board_state
 }
 

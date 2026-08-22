@@ -48,6 +48,19 @@ const CARDINAL_CHECKS: [fn(u64) -> usize; 8] = [
     get_to_bottom_right,
 ];
 
+const BLACK_QUEEN_CASTLE_ROW_MASK: u64 = 0xe00000000000000;
+const WHITE_QUEEN_CASTLE_ROW_MASK: u64 = 0xe;
+
+const BLACK_QUEEN_CASTLE_MASK: u64 = 0xc00000000000000;
+const BLACK_KING_CASTLE_MASK: u64 = 0x6000000000000000;
+const WHITE_QUEEN_CASTLE_MASK: u64 = 0xc;
+const WHITE_KING_CASTLE_MASK: u64 = 0x60;
+
+const BLACK_QUEEN_CASTLE_DEST: u64 = 1 << 58;
+const BLACK_KING_CASTLE_DEST: u64 = 1 << 62;
+const WHITE_QUEEN_CASTLE_DEST: u64 = 1 << 2;
+const WHITE_KING_CASTLE_DEST: u64 = 1 << 6;
+
 impl King {
     pub fn gen_moves(
         index: u64,
@@ -212,14 +225,45 @@ impl King {
 
         let my_side: u64;
         let my_mask: u64;
+
+        //castling relevant infot
+        let queen_castle_mask: u64;
+        let king_castle_mask: u64;
+        let queen_castle_dest: u64;
+        let king_castle_dest: u64;
+        let relevant_attacked_squares: u64;
+        let queen_castle_validator: u8;
+        let king_catle_validator: u8;
+        let relevant_queen_row: u64;
+
+        let relevant_checks: u32;
+
         match side {
             Sides::BLACK => {
                 my_side = black_pieces;
                 my_mask = game_state.black_king_mask;
+                queen_castle_mask = BLACK_QUEEN_CASTLE_MASK;
+                king_castle_mask = BLACK_KING_CASTLE_MASK;
+                queen_castle_dest = BLACK_QUEEN_CASTLE_DEST;
+                king_castle_dest = BLACK_KING_CASTLE_DEST;
+                relevant_attacked_squares = game_state.white_attacked;
+                queen_castle_validator = 0b0000_0001;
+                king_catle_validator = 0b0000_0010;
+                relevant_queen_row = BLACK_QUEEN_CASTLE_ROW_MASK;
+                relevant_checks = game_state.black_checks;
             }
             Sides::WHITE => {
                 my_side = white_pieces;
                 my_mask = game_state.white_king_mask;
+                queen_castle_mask = WHITE_QUEEN_CASTLE_MASK;
+                king_castle_mask = WHITE_KING_CASTLE_MASK;
+                queen_castle_dest = WHITE_QUEEN_CASTLE_DEST;
+                king_castle_dest = WHITE_KING_CASTLE_DEST;
+                relevant_attacked_squares = game_state.black_attacked;
+                queen_castle_validator = 0b0000_0100;
+                king_catle_validator = 0b0000_1000;
+                relevant_queen_row = WHITE_QUEEN_CASTLE_ROW_MASK;
+                relevant_checks = game_state.white_checks;
             }
         };
         let mut generated: u64 = 0;
@@ -230,7 +274,26 @@ impl King {
                 generated |= add_pos(index, CARDINAL_SHIFTS[i], my_side)
             }
         }
+
         generated &= !my_mask;
+
+        if relevant_checks > 0 {
+            return generated;
+        }
+
+        if queen_castle_mask & (relevant_attacked_squares | black_pieces | white_pieces) == 0
+            && game_state.castling_rights & queen_castle_validator != 0
+            && relevant_queen_row & (black_pieces | white_pieces) == 0
+        {
+            generated |= queen_castle_dest;
+        }
+
+        if king_castle_mask & (relevant_attacked_squares | black_pieces | white_pieces) == 0
+            && game_state.castling_rights & king_catle_validator != 0
+        {
+            generated |= king_castle_dest;
+        }
+
         generated
     }
 
