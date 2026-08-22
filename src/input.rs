@@ -4,7 +4,6 @@ use macroquad::input::is_mouse_button_pressed;
 use macroquad::input::mouse_position;
 use macroquad::math::Vec2;
 use macroquad::ui::root_ui;
-use macroquad::ui::widgets;
 
 use crate::board::BB;
 use crate::board::BN;
