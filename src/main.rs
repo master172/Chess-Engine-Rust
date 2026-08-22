@@ -1,12 +1,15 @@
+use macroquad::prelude::*;
 use std::env;
 
-use macroquad::prelude::*;
-
 use crate::{
-    board::{BoardState, pieces::Sides::WHITE},
+    ChessState::Regular,
+    board::{
+        BoardState,
+        pieces::Sides::{self, WHITE},
+    },
     fen_engine::fen_to_board_state,
-    game::{GameState, MoveResult, handle_game_state},
-    input::InputPackage,
+    game::{GameState, MoveResult, handle_game_state, handle_promotion},
+    input::{InputPackage, handle_promotion_input},
     piece_textures::{PieceTextures, load_all_textures},
     renderer::{
         draw_legal_squares, draw_squares_from_num, handle_overlays, render_board, render_pieces,
@@ -20,6 +23,13 @@ mod input;
 pub mod lookup_helpers;
 mod piece_textures;
 mod renderer;
+
+/// the enum that the main function state machine uses to decide wether to handle input processing for the board
+/// or the promoton UI.
+pub enum ChessState {
+    Regular,
+    Promotion(Sides),
+}
 
 fn game_conf() -> Conf {
     Conf {
@@ -85,13 +95,29 @@ async fn main() {
     };
 
     //here is the actual game loop logic
+    let mut prev_result: ChessState = Regular;
     loop {
-        //println!("{}", get_fps());
-        render_board();
-        process_input(&mut input_package, &mut game_state, &mut board_state);
-        draw_legal_squares(&game_state);
-        //debug_draw(&game_state);
-        render_pieces(&board_state, &piece_textures);
+        match prev_result {
+            ChessState::Regular => {
+                //println!("{}", get_fps());
+                render_board();
+                prev_result = process_input(&mut input_package, &mut game_state, &mut board_state);
+                draw_legal_squares(&game_state);
+                //debug_draw(&game_state);
+                render_pieces(&board_state, &piece_textures);
+            }
+            ChessState::Promotion(side) => {
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                match handle_promotion_input(side) {
+                    None => (),
+                    Some(val) => {
+                        handle_promotion(&mut game_state, &mut board_state, val);
+                        prev_result = ChessState::Regular;
+                    }
+                }
+            }
+        }
         next_frame().await;
     }
 }
@@ -100,13 +126,15 @@ fn process_input(
     input_package: &mut InputPackage,
     game_state: &mut GameState,
     board_state: &mut BoardState,
-) {
+) -> ChessState {
+    let mut result: ChessState = ChessState::Regular;
     match input_package.gather_input() {
         input::States::Idle => (),
         input::States::Update => {
             game_state.input_to_game_state(input_package);
-            match handle_game_state(game_state, board_state, input_package) {
+            match handle_game_state(game_state, board_state) {
                 MoveResult::Move => input_package.reset_input(),
+                MoveResult::Promotion(side) => result = ChessState::Promotion(side),
                 _ => (),
             }
         }
@@ -124,6 +152,8 @@ fn process_input(
         }
         None => (),
     }
+
+    result
 }
 
 #[allow(dead_code)]

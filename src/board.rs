@@ -61,7 +61,7 @@ const BLACK_PROMOTION_MASK: u64 = 0xff;
 
 pub enum BoardResult {
     None,
-    Promotion,
+    Promotion(Sides),
 }
 
 #[derive(Debug)]
@@ -240,7 +240,7 @@ impl BoardState {
             && (1 << game_state.current_index.unwrap() as u64) & validation_promotion_mask != 0
         {
             *relevant_promotion_mask |= 1 << game_state.current_index.unwrap() as u64;
-            result = BoardResult::Promotion;
+            result = BoardResult::Promotion(side);
         }
 
         self.set_attacked_squares(side, game_state);

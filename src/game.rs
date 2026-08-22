@@ -1,5 +1,5 @@
 use crate::{
-    board::{BP, BQ, BoardResult, BoardState, WP, WQ, pieces::Sides},
+    board::{BP, BoardResult, BoardState, WP, pieces::Sides},
     input::InputPackage,
 };
 
@@ -47,6 +47,7 @@ pub enum MoveResult {
     Idle,
     Move,
     Generate,
+    Promotion(Sides),
 }
 
 impl GameState {
@@ -90,7 +91,7 @@ impl GameState {
 pub fn handle_game_state(
     game_state: &mut GameState,
     board_state: &mut BoardState,
-    input: &InputPackage,
+    //input: &InputPackage,
 ) -> MoveResult {
     //first check and handle pawn promotion
 
@@ -102,29 +103,26 @@ pub fn handle_game_state(
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
         match board_state.move_piece(game_state) {
-            BoardResult::None => (),
-            BoardResult::Promotion => handle_promotion(game_state, board_state, input),
-        }
-        return MoveResult::Move;
+            BoardResult::None => return MoveResult::Move,
+            BoardResult::Promotion(side) => return MoveResult::Promotion(side),
+        };
     } else {
         board_state.generate_legal_moves(game_state);
         return MoveResult::Generate;
     }
 }
 
-fn handle_promotion(
+pub fn handle_promotion(
     game_state: &mut GameState,
     board_state: &mut BoardState,
-    input: &InputPackage,
+    given_index: usize, //input: &InputPackage,
 ) {
     if game_state.black_promotion_mask != 0 {
-        let given_index: usize = BQ;
         board_state.board_representation[BP] &= !game_state.black_promotion_mask;
         board_state.board_representation[given_index] |= game_state.black_promotion_mask;
         game_state.black_promotion_mask = 0;
     }
     if game_state.white_promotion_mask != 0 {
-        let given_index: usize = WQ;
         board_state.board_representation[WP] &= !game_state.white_promotion_mask;
         board_state.board_representation[given_index] |= game_state.white_promotion_mask;
         game_state.white_promotion_mask = 0;
