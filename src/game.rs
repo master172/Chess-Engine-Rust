@@ -1,5 +1,5 @@
 use crate::{
-    board::{BoardState, pieces::Sides},
+    board::{BP, BQ, BoardResult, BoardState, WP, WQ, pieces::Sides},
     input::InputPackage,
 };
 
@@ -33,6 +33,9 @@ pub struct GameState {
     pub en_passant_capture_mask: u64,
 
     pub castling_rights: u8,
+
+    pub black_promotion_mask: u64,
+    pub white_promotion_mask: u64,
     //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
@@ -71,6 +74,8 @@ impl GameState {
             white_enemy_blockers: 0,
             black_enemy_blockers: 0,
             castling_rights,
+            black_promotion_mask: 0,
+            white_promotion_mask: 0,
         }
     }
 
@@ -82,17 +87,46 @@ impl GameState {
     }
 }
 
-pub fn handle_game_state(game_state: &mut GameState, board_state: &mut BoardState) -> MoveResult {
+pub fn handle_game_state(
+    game_state: &mut GameState,
+    board_state: &mut BoardState,
+    input: &InputPackage,
+) -> MoveResult {
+    //first check and handle pawn promotion
+
+    //then the regular gameplay
     if game_state.current_index.is_none() {
         return MoveResult::Idle;
     }
     if game_state.legal_moves != 0
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
-        board_state.move_piece(game_state);
+        match board_state.move_piece(game_state) {
+            BoardResult::None => (),
+            BoardResult::Promotion => handle_promotion(game_state, board_state, input),
+        }
         return MoveResult::Move;
     } else {
         board_state.generate_legal_moves(game_state);
         return MoveResult::Generate;
+    }
+}
+
+fn handle_promotion(
+    game_state: &mut GameState,
+    board_state: &mut BoardState,
+    input: &InputPackage,
+) {
+    if game_state.black_promotion_mask != 0 {
+        let given_index: usize = BQ;
+        board_state.board_representation[BP] &= !game_state.black_promotion_mask;
+        board_state.board_representation[given_index] |= game_state.black_promotion_mask;
+        game_state.black_promotion_mask = 0;
+    }
+    if game_state.white_promotion_mask != 0 {
+        let given_index: usize = WQ;
+        board_state.board_representation[WP] &= !game_state.white_promotion_mask;
+        board_state.board_representation[given_index] |= game_state.white_promotion_mask;
+        game_state.white_promotion_mask = 0;
     }
 }

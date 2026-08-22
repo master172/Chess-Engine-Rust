@@ -105,7 +105,7 @@ fn process_input(
         input::States::Idle => (),
         input::States::Update => {
             game_state.input_to_game_state(input_package);
-            match handle_game_state(game_state, board_state) {
+            match handle_game_state(game_state, board_state, input_package) {
                 MoveResult::Move => input_package.reset_input(),
                 _ => (),
             }

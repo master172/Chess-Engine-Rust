@@ -56,6 +56,14 @@ pub const WHITE_INDEXES: [usize; 6] = [WK, WQ, WN, WR, WB, WP];
 const BLACK_CASTLE_INVALIDATION_MASK: u64 = (1 << 63) | (1 << 56) | (1 << 60);
 const WHITE_CASTLE_INVALIDATION_MASK: u64 = (1 << 0) | (1 << 4) | (1 << 7);
 
+const WHITE_PROMOTION_MASK: u64 = 0xff00_0000_0000_0000;
+const BLACK_PROMOTION_MASK: u64 = 0xff;
+
+pub enum BoardResult {
+    None,
+    Promotion,
+}
+
 #[derive(Debug)]
 pub struct BoardState {
     pub board_representation: [u64; 12],
@@ -197,7 +205,8 @@ impl BoardState {
         }
     }
 
-    pub fn move_piece(&mut self, game_state: &mut GameState) {
+    pub fn move_piece(&mut self, game_state: &mut GameState) -> BoardResult {
+        let mut result: BoardResult = BoardResult::None;
         let (piece, side, _) = self
             .get_piece_from_index(game_state.previous_index.unwrap())
             .unwrap();
@@ -206,17 +215,32 @@ impl BoardState {
         self.board_representation[game_state.current_array_index.unwrap()] |=
             1 << (game_state.current_index.unwrap() as u64);
         let capture_mask: u64 = !(1 << (game_state.current_index.unwrap() as u64));
+
+        let relevant_promotion_mask: &mut u64;
+        let validation_promotion_mask: u64;
         match side {
             Sides::WHITE => {
                 for i in BLACK_INDEXES {
                     self.board_representation[i] &= capture_mask;
                 }
+                relevant_promotion_mask = &mut game_state.white_promotion_mask;
+                validation_promotion_mask = WHITE_PROMOTION_MASK;
             }
             Sides::BLACK => {
                 for i in WHITE_INDEXES {
                     self.board_representation[i] &= capture_mask;
                 }
+                relevant_promotion_mask = &mut game_state.black_promotion_mask;
+                validation_promotion_mask = BLACK_PROMOTION_MASK;
             }
+        }
+
+        //pawn promotion specific
+        if piece == PAWN
+            && (1 << game_state.current_index.unwrap() as u64) & validation_promotion_mask != 0
+        {
+            *relevant_promotion_mask |= 1 << game_state.current_index.unwrap() as u64;
+            result = BoardResult::Promotion;
         }
 
         self.set_attacked_squares(side, game_state);
@@ -233,6 +257,8 @@ impl BoardState {
         if game_state.dev_mode == false {
             game_state.current_side = game_state.current_side.flip();
         }
+
+        result
     }
 
     // the side passed to it must be the side that is playing currently
