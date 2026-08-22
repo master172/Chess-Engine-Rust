@@ -2,7 +2,9 @@ use chess::mouse_pos_to_board_index;
 use macroquad::input::MouseButton;
 use macroquad::input::is_mouse_button_pressed;
 use macroquad::input::mouse_position;
+use macroquad::math::Vec2;
 use macroquad::ui::root_ui;
+use macroquad::ui::widgets;
 
 use crate::board::BB;
 use crate::board::BN;
@@ -27,6 +29,11 @@ pub enum States {
     Update,
 }
 
+const UI_START_POS_X: f32 = 32.0;
+const UI_START_POS_Y: f32 = 32.0;
+const UI_BUTTON_WIDTH: f32 = 48.0;
+const UI_BUTTON_GAP: f32 = 16.0;
+
 impl InputPackage {
     pub fn gather_input(&mut self) -> States {
         if is_mouse_button_pressed(MouseButton::Left) {
@@ -45,19 +52,38 @@ impl InputPackage {
 }
 
 pub fn handle_promotion_input(side: Sides) -> Option<usize> {
-    if root_ui().button(None, "Queen") {
+    if root_ui().button(Vec2::new(UI_START_POS_X, UI_START_POS_Y), "Queen") {
         let result: usize = if side == Sides::WHITE { WQ } else { BQ };
         return Some(result);
     }
-    if root_ui().button(None, "Rook") {
+
+    if root_ui().button(
+        Vec2::new(
+            UI_START_POS_X,
+            UI_START_POS_Y + (UI_BUTTON_WIDTH) + (UI_BUTTON_GAP),
+        ),
+        "Rook",
+    ) {
         let result: usize = if side == Sides::WHITE { WR } else { BR };
         return Some(result);
     }
-    if root_ui().button(None, "Bishop") {
+    if root_ui().button(
+        Vec2::new(
+            UI_START_POS_X,
+            UI_START_POS_Y + (UI_BUTTON_WIDTH * 2.0) + (UI_BUTTON_GAP * 2.0),
+        ),
+        "Bishop",
+    ) {
         let result: usize = if side == Sides::WHITE { WB } else { BB };
         return Some(result);
     }
-    if root_ui().button(None, "Knight") {
+    if root_ui().button(
+        Vec2::new(
+            UI_START_POS_X,
+            UI_START_POS_Y + (UI_BUTTON_WIDTH * 3.0) + (UI_BUTTON_GAP * 3.0),
+        ),
+        "Knight",
+    ) {
         let result: usize = if side == Sides::WHITE { WN } else { BN };
         return Some(result);
     }
