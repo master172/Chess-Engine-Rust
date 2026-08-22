@@ -98,6 +98,12 @@ impl BoardState {
         }
         game_state.current_array_index = Some(index);
 
+        piece.pre_move_gen(
+            game_state.current_index.unwrap() as u64,
+            &self.board_representation,
+            &side,
+            game_state,
+        );
         game_state.legal_moves = piece.generate_moves(
             game_state.current_index.unwrap() as u64,
             &self.board_representation,
@@ -119,7 +125,8 @@ impl BoardState {
         game_state.legal_moves = 0;
         game_state.previous_index = None;
         game_state.current_index = None;
-        game_state.current_array_index = None
+        game_state.current_array_index = None;
+        //game_state.en_passant_candidate_mask = 0;
     }
 
     pub fn valid_piece_selection(&self, index: i32, game_state: &GameState) -> bool {
@@ -127,8 +134,40 @@ impl BoardState {
         return side == game_state.current_side;
     }
 
+    pub fn handle_move_after_effects(
+        &mut self,
+        game_state: &mut GameState,
+        piece: Piece,
+        //prev_index: u64,
+        current_index: u64,
+    ) {
+        match piece {
+            PAWN => {
+                if game_state.en_passant_capture_mask & (1 << current_index) != 0 {
+                    game_state.en_passant_mask = game_state.en_passant_candidate_mask
+                } else if game_state.en_passant_mask & (1 << current_index) != 0 {
+                    self.board_representation[BP] &= !game_state.en_passant_capture_mask;
+                    self.board_representation[WP] &= !game_state.en_passant_capture_mask;
+                    game_state.en_passant_mask = 0;
+                    game_state.en_passant_candidate_mask = 0;
+                    game_state.en_passant_capture_mask = 0;
+                } else {
+                    game_state.en_passant_candidate_mask = 0;
+                    game_state.en_passant_capture_mask = 0;
+                }
+            }
+            _ => {
+                // cleanup in case a piece with no special moves associated with it moes
+                // they are reset to prevent state corruption
+                game_state.en_passant_capture_mask = 0;
+                game_state.en_passant_candidate_mask = 0;
+                game_state.en_passant_mask = 0;
+            }
+        }
+    }
+
     pub fn move_piece(&mut self, game_state: &mut GameState) {
-        let (_, side, _) = self
+        let (piece, side, _) = self
             .get_piece_from_index(game_state.previous_index.unwrap())
             .unwrap();
         self.board_representation[game_state.current_array_index.unwrap()] &=
@@ -150,6 +189,12 @@ impl BoardState {
         }
 
         self.set_attacked_squares(side, game_state);
+        self.handle_move_after_effects(
+            game_state,
+            piece,
+            //game_state.previous_index.unwrap() as u64,
+            game_state.current_index.unwrap() as u64,
+        );
         self.handle_king_saftey(side.flip(), game_state);
 
         self.reset_necessary_game_state_variables(game_state);

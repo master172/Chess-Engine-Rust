@@ -23,6 +23,11 @@ pub struct GameState {
 
     pub pin_index_mask: u64,
     pub pin_mask: [u64; 64],
+
+    //special move info
+    pub en_passant_candidate_mask: u64,
+    pub en_passant_mask: u64,
+    pub en_passant_capture_mask: u64,
     //move gen values
     pub previous_index: Option<i32>,
     pub current_index: Option<i32>,
@@ -55,6 +60,9 @@ impl GameState {
             pin_mask: [0; 64],
             white_king_mask: 0,
             black_king_mask: 0,
+            en_passant_candidate_mask: 0,
+            en_passant_capture_mask: 0,
+            en_passant_mask: 0,
         }
     }
 

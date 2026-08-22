@@ -3,6 +3,7 @@ use crate::{
     game::GameState,
 };
 
+#[derive(PartialEq, Eq)]
 pub enum MoveGenerators {
     King,
     Knight,
@@ -26,6 +27,7 @@ impl Sides {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub struct Piece {
     pub generators: &'static [MoveGenerators],
 }
@@ -56,6 +58,18 @@ impl Piece {
             generated = generated | i.get_attacking_squares(index, board_representation, side);
         }
         generated
+    }
+
+    pub fn pre_move_gen(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &mut GameState,
+    ) {
+        for i in self.generators {
+            i.pre_move_gen(index, board_representation, side, game_state);
+        }
     }
 }
 
@@ -94,6 +108,26 @@ impl MoveGenerators {
             MoveGenerators::Rook => Rook::get_attacking_squares(index, board_representation, side),
             MoveGenerators::Knight => Knight::get_attacking_squares(index),
             MoveGenerators::Pawn => Pawn::get_attacking_squares(index, side),
+        }
+    }
+
+    pub fn pre_move_gen(
+        &self,
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &mut GameState,
+    ) {
+        match &self {
+            MoveGenerators::King => (),   //King::get_attacking_squares(index),
+            MoveGenerators::Bishop => (), //{
+            //    Bishop::get_attacking_squares(index, board_representation, side)
+            //}
+            MoveGenerators::Rook => (), //Rook::get_attacking_squares(index, board_representation, side),
+            MoveGenerators::Knight => (), //Knight::get_attacking_squares(index),
+            MoveGenerators::Pawn => {
+                Pawn::pre_move_gen(index, board_representation, side, game_state)
+            } //Pawn::get_attacking_squares(index, side),
         }
     }
 }

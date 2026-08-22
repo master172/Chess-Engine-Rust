@@ -34,6 +34,15 @@ impl Pawn {
         psuedo_legal_moves
     }
 
+    pub fn pre_move_gen(
+        index: u64,
+        board_representation: &[u64; 12],
+        side: &Sides,
+        game_state: &mut GameState,
+    ) {
+        set_en_passant_candiadte_mask(index, side, board_representation, game_state);
+    }
+
     pub fn get_psuedo_legal_moves(
         index: u64,
         board_representation: &[u64; 12],
@@ -65,10 +74,14 @@ impl Pawn {
         }
 
         let mut generated: u64 = 0;
-        generated = generated | add_foward_double_pos(index, side, board_representation);
-        generated = generated | add_foward_pos(index, side, board_representation);
-        generated = generated | add_attack_left_pos(index, side, enemy_side);
-        generated = generated | add_attack_right_pos(index, side, enemy_side);
+        generated |= add_foward_double_pos(index, side, board_representation);
+        generated |= add_foward_pos(index, side, board_representation);
+
+        let attack_left_pos: u64 = add_attack_left_pos(index, side, enemy_side);
+        let attack_right_pos: u64 = add_attack_right_pos(index, side, enemy_side);
+        generated |= attack_left_pos | attack_right_pos;
+        generated |= game_state.en_passant_mask
+            & (get_attack_left_pos(index, side) | get_attack_right_pos(index, side));
 
         if my_side_checks == 1 {
             generated &= my_side_evasion_mask;
@@ -97,6 +110,24 @@ fn add_foward_double_pos(index: u64, side: &Sides, board_representation: &[u64; 
         return pos;
     }
     return 0;
+}
+
+fn set_en_passant_candiadte_mask(
+    index: u64,
+    side: &Sides,
+    board_representation: &[u64; 12],
+    game_state: &mut GameState,
+) {
+    let mut final_board: u64 = 0;
+    for board in board_representation.iter() {
+        final_board = final_board | board;
+    }
+    let pos: u64 = get_foward_double_movement_pos(index, side, final_board);
+    let capture: u64 = get_foward_movement_pos(index, side);
+    if validate_foward_double_movement(pos, final_board) {
+        game_state.en_passant_candidate_mask |= capture;
+        game_state.en_passant_capture_mask |= pos;
+    }
 }
 
 fn add_foward_pos(index: u64, side: &Sides, board_representation: &[u64; 12]) -> u64 {
