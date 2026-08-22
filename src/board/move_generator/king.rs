@@ -82,6 +82,9 @@ impl King {
         let blockers_mask: u64;
         let relevant_attackers: &[[usize; 2]; 8];
         let my_mask: &mut u64;
+        let all_opposing_pieces: u64;
+        let my_enemey_blockers: &mut u64;
+
         //then configure them
         if side == Sides::WHITE {
             checking_value = &mut game_state.white_checks;
@@ -91,7 +94,9 @@ impl King {
             evasion_mask = &mut game_state.white_evasion_mask;
             relevant_attackers = &CARDINAL_RELEVANT_BLACKS;
             blockers_mask = get_all_white_pieces(board_representation);
+            all_opposing_pieces = get_all_black_pieces(board_representation);
             my_mask = &mut game_state.white_king_mask;
+            my_enemey_blockers = &mut game_state.white_enemy_blockers;
         } else {
             checking_value = &mut game_state.black_checks;
             pawn_index = WP;
@@ -100,7 +105,9 @@ impl King {
             evasion_mask = &mut game_state.black_evasion_mask;
             relevant_attackers = &CARDINAL_RELEVANT_WHITES;
             blockers_mask = get_all_black_pieces(board_representation);
+            all_opposing_pieces = get_all_white_pieces(board_representation);
             my_mask = &mut game_state.black_king_mask;
+            my_enemey_blockers = &mut game_state.black_enemy_blockers;
         };
         // it is also necessary that we reset game state variables before calculating them
         // since we do a full calc each time we can just reset all of them no problem
@@ -109,6 +116,7 @@ impl King {
         *evasion_mask = 0;
         *checking_value = 0;
         *my_mask = 0;
+        *my_enemey_blockers = 0;
         // first we start with non slider checks
 
         // starting with pawns
@@ -166,6 +174,9 @@ impl King {
                             *evasion_mask |= acquired_mask;
                             break 'ray_loop;
                         }
+                    } else if all_opposing_pieces & target_bit_mask != 0 {
+                        *my_enemey_blockers |= target_bit_mask;
+                        break 'ray_loop;
                     }
                 }
 

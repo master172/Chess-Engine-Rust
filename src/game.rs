@@ -21,6 +21,9 @@ pub struct GameState {
     pub white_king_mask: u64,
     pub black_king_mask: u64,
 
+    pub white_enemy_blockers: u64,
+    pub black_enemy_blockers: u64,
+
     pub pin_index_mask: u64,
     pub pin_mask: [u64; 64],
 
@@ -63,6 +66,8 @@ impl GameState {
             en_passant_candidate_mask: 0,
             en_passant_capture_mask: 0,
             en_passant_mask: 0,
+            white_enemy_blockers: 0,
+            black_enemy_blockers: 0,
         }
     }
 

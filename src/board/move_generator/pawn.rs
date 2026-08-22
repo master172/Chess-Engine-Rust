@@ -55,17 +55,20 @@ impl Pawn {
         let enemy_side: u64;
         let my_side_checks: u32;
         let my_side_evasion_mask: u64;
+        let relevant_mask_to_check: u64;
 
         match side {
             Sides::BLACK => {
                 enemy_side = white_pieces;
                 my_side_checks = game_state.black_checks;
                 my_side_evasion_mask = game_state.black_evasion_mask;
+                relevant_mask_to_check = game_state.black_enemy_blockers;
             }
             Sides::WHITE => {
                 enemy_side = black_pieces;
                 my_side_checks = game_state.white_checks;
                 my_side_evasion_mask = game_state.white_evasion_mask;
+                relevant_mask_to_check = game_state.white_enemy_blockers;
             }
         };
 
@@ -80,9 +83,12 @@ impl Pawn {
         let attack_left_pos: u64 = add_attack_left_pos(index, side, enemy_side);
         let attack_right_pos: u64 = add_attack_right_pos(index, side, enemy_side);
         generated |= attack_left_pos | attack_right_pos;
-        generated |= game_state.en_passant_mask
-            & (get_attack_left_pos(index, side) | get_attack_right_pos(index, side));
 
+        // en passant stuff
+        if game_state.en_passant_capture_mask & relevant_mask_to_check == 0 {
+            generated |= game_state.en_passant_mask
+                & (get_attack_left_pos(index, side) | get_attack_right_pos(index, side));
+        }
         if my_side_checks == 1 {
             generated &= my_side_evasion_mask;
         }

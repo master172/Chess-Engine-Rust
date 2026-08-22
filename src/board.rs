@@ -154,6 +154,7 @@ impl BoardState {
                 } else {
                     game_state.en_passant_candidate_mask = 0;
                     game_state.en_passant_capture_mask = 0;
+                    game_state.en_passant_mask = 0;
                 }
             }
             _ => {
