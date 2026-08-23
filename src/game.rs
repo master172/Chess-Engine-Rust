@@ -1,7 +1,7 @@
 use crate::{
     board::{BP, BoardResult, BoardState, WP, pieces::Sides},
     draw_manager::DrawDetails,
-    game::MoveResult::DrawByRepition,
+    game::MoveResult::{DrawByInsufficientMaterial, DrawByRepition},
     input::InputPackage,
 };
 
@@ -55,6 +55,7 @@ pub enum MoveResult {
     CheckMate(Sides),
     StaleMate(Sides),
     DrawByRepition,
+    DrawByInsufficientMaterial,
 }
 
 impl GameState {
@@ -129,6 +130,10 @@ pub fn handle_game_state(
                 MoveResult::Move
             }
         };
+
+        if draw_details.insufficient_material(board_state) {
+            return DrawByInsufficientMaterial;
+        }
 
         let num_appearence: u8 =
             draw_details.add_zorbist_hash(game_state.current_side, game_state, board_state);

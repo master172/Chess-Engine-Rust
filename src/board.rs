@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-mod move_generator;
+pub mod move_generator;
 mod piece_definitions;
 pub mod pieces;
 

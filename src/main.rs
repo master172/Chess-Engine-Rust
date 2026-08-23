@@ -2,14 +2,15 @@ use macroquad::prelude::*;
 use std::env;
 
 use crate::{
-    ChessState::Regular,
+    ChessState::{DrawByInsufficientMaterial, Regular},
     board::{
         BoardResult, BoardState,
         pieces::Sides::{self},
     },
     draw_manager::DrawDetails,
     endgame_manager::{
-        handle_checkmate, handle_draw_by_75_move_rule, handle_draw_by_repititon, handle_stalemate,
+        handle_checkmate, handle_draw_by_75_move_rule, handle_draw_by_insufficient_material,
+        handle_draw_by_repititon, handle_stalemate,
     },
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state, handle_promotion},
@@ -38,6 +39,7 @@ pub enum ChessState {
     CheckMate(Sides),
     DrawBy75MoveRule,
     DrawByRepition,
+    DrawByInsufficientMaterial,
 }
 
 fn game_conf() -> Conf {
@@ -86,6 +88,8 @@ async fn main() {
         dev_mode = args[2].parse::<bool>().unwrap_or(false);
     }
 
+    let mut prev_result: ChessState = Regular;
+
     // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
 
@@ -102,6 +106,10 @@ async fn main() {
     //also prepare the draw manager
     let mut draw_details: DrawDetails = DrawDetails::new(&game_state, &board_state);
 
+    if draw_details.insufficient_material(&board_state) {
+        prev_result = DrawByInsufficientMaterial
+    }
+
     //loading textures and starting setting up input packages
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {
@@ -109,7 +117,6 @@ async fn main() {
     };
 
     //here is the actual game loop logic
-    let mut prev_result: ChessState = Regular;
     loop {
         match prev_result {
             ChessState::Regular => {
@@ -157,6 +164,11 @@ async fn main() {
                 render_pieces(&board_state, &piece_textures);
                 handle_draw_by_repititon();
             }
+            ChessState::DrawByInsufficientMaterial => {
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                handle_draw_by_insufficient_material();
+            }
         }
         next_frame().await;
     }
@@ -179,6 +191,9 @@ fn process_input(
                 MoveResult::CheckMate(side) => result = ChessState::CheckMate(side),
                 MoveResult::StaleMate(side) => result = ChessState::StaleMate(side),
                 MoveResult::DrawByRepition => result = ChessState::DrawByRepition,
+                MoveResult::DrawByInsufficientMaterial => {
+                    result = ChessState::DrawByInsufficientMaterial
+                }
                 _ => (),
             }
         }

@@ -41,3 +41,13 @@ pub fn handle_draw_by_repititon() {
         WHITE,
     );
 }
+
+pub fn handle_draw_by_insufficient_material() {
+    draw_text(
+        format!("draw by insufficient material"),
+        (screen_width() - (20.0 * 20.0)) / 2.0,
+        32.0,
+        32.0,
+        WHITE,
+    );
+}
