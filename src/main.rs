@@ -4,7 +4,7 @@ use std::env;
 use crate::{
     ChessState::Regular,
     board::{
-        BoardState,
+        BoardResult, BoardState,
         pieces::Sides::{self},
     },
     fen_engine::fen_to_board_state,
@@ -27,6 +27,8 @@ mod renderer;
 pub enum ChessState {
     Regular,
     Promotion(Sides),
+    StaleMate(Sides),
+    CheckMate(Sides),
 }
 
 fn game_conf() -> Conf {
@@ -110,11 +112,18 @@ async fn main() {
                 render_pieces(&board_state, &piece_textures);
                 match handle_promotion_input(side) {
                     None => (),
-                    Some(val) => {
-                        handle_promotion(&mut game_state, &mut board_state, val);
-                        prev_result = ChessState::Regular;
-                    }
+                    Some(val) => match handle_promotion(&mut game_state, &mut board_state, val) {
+                        BoardResult::CheckMate(side) => prev_result = ChessState::CheckMate(side),
+                        BoardResult::StaleMate(side) => prev_result = ChessState::StaleMate(side),
+                        _ => prev_result = ChessState::Regular,
+                    },
                 }
+            }
+            ChessState::StaleMate(side) => {
+                println!("{side:?} got stalemated")
+            }
+            ChessState::CheckMate(side) => {
+                println!("{side:?} got checkmated")
             }
         }
         next_frame().await;
@@ -134,6 +143,8 @@ fn process_input(
             match handle_game_state(game_state, board_state) {
                 MoveResult::Move => input_package.reset_input(),
                 MoveResult::Promotion(side) => result = ChessState::Promotion(side),
+                MoveResult::CheckMate(side) => result = ChessState::CheckMate(side),
+                MoveResult::StaleMate(side) => result = ChessState::StaleMate(side),
                 _ => (),
             }
         }

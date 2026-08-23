@@ -50,6 +50,8 @@ pub enum MoveResult {
     Move,
     Generate,
     Promotion(Sides),
+    CheckMate(Sides),
+    StaleMate(Sides),
 }
 
 impl GameState {
@@ -109,6 +111,8 @@ pub fn handle_game_state(
         match board_state.move_piece(game_state) {
             BoardResult::None => return MoveResult::Move,
             BoardResult::Promotion(side) => return MoveResult::Promotion(side),
+            BoardResult::CheckMate(side) => return MoveResult::CheckMate(side),
+            BoardResult::StaleMate(side) => return MoveResult::StaleMate(side),
         };
     } else {
         board_state.generate_legal_moves(game_state);
@@ -120,28 +124,29 @@ pub fn handle_promotion(
     game_state: &mut GameState,
     board_state: &mut BoardState,
     given_index: usize, //input: &InputPackage,
-) {
+) -> BoardResult {
     if game_state.black_promotion_mask != 0 {
         board_state.board_representation[BP] &= !game_state.black_promotion_mask;
         board_state.board_representation[given_index] |= game_state.black_promotion_mask;
         game_state.black_promotion_mask = 0;
-        handle_promotion_after_effects(Sides::BLACK, board_state, game_state);
+        return handle_promotion_after_effects(Sides::BLACK, board_state, game_state);
     }
     if game_state.white_promotion_mask != 0 {
         board_state.board_representation[WP] &= !game_state.white_promotion_mask;
         board_state.board_representation[given_index] |= game_state.white_promotion_mask;
         game_state.white_promotion_mask = 0;
-        handle_promotion_after_effects(Sides::WHITE, board_state, game_state);
+        return handle_promotion_after_effects(Sides::WHITE, board_state, game_state);
     }
+    return BoardResult::None;
 }
 
 pub fn handle_promotion_after_effects(
     side: Sides,
     board_state: &mut BoardState,
     game_state: &mut GameState,
-) {
+) -> BoardResult {
     board_state.set_attacked_squares(side, game_state);
     board_state.handle_king_saftey(side.flip(), game_state);
     board_state.gen_all_legal_moves(game_state, side.flip());
-    board_state.check_endgame(side.flip(), game_state);
+    return board_state.check_endgame(side.flip(), game_state);
 }

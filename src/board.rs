@@ -1,6 +1,7 @@
 use crate::{
     GameState,
     board::{
+        BoardResult::{CheckMate, StaleMate},
         move_generator::king::King,
         piece_definitions::{BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK},
         pieces::{
@@ -62,6 +63,8 @@ const BLACK_PROMOTION_MASK: u64 = 0xff;
 pub enum BoardResult {
     None,
     Promotion(Sides),
+    CheckMate(Sides),
+    StaleMate(Sides),
 }
 
 #[derive(Debug)]
@@ -228,17 +231,18 @@ impl BoardState {
         }
     }
 
-    pub fn check_endgame(&self, side: Sides, game_state: &GameState) {
+    pub fn check_endgame(&self, side: Sides, game_state: &GameState) -> BoardResult {
         let checks_for_side = if side == Sides::WHITE {
             game_state.white_checks
         } else {
             game_state.black_checks
         };
         if game_state.current_legal_move_mask == 0 && checks_for_side == 0 {
-            println!("stalemate for {side:?}");
+            return BoardResult::StaleMate(side);
         } else if game_state.current_legal_move_mask == 0 && checks_for_side > 0 {
-            println!("checkmate for {side:?}");
+            return BoardResult::CheckMate(side);
         }
+        return BoardResult::None;
     }
 
     pub fn move_piece(&mut self, game_state: &mut GameState) -> BoardResult {
@@ -291,7 +295,12 @@ impl BoardState {
         self.gen_all_legal_moves(game_state, side.flip());
 
         self.reset_necessary_game_state_variables(game_state);
-        self.check_endgame(side.flip(), game_state);
+
+        match self.check_endgame(side.flip(), game_state) {
+            CheckMate(side) => result = CheckMate(side),
+            StaleMate(side) => result = StaleMate(side),
+            _ => (),
+        }
         if game_state.dev_mode == false {
             game_state.current_side = game_state.current_side.flip();
         }
