@@ -28,7 +28,7 @@ impl DrawDetails {
         result
     }
     pub fn draw_by_excessive_non_progressive_moves(&self) -> bool {
-        return self.total_non_progressive_moves > 150;
+        return self.total_non_progressive_moves >= 150;
     }
 
     pub fn add_zorbist_hash(
@@ -146,5 +146,19 @@ impl DrawDetails {
             }
         }
         return false;
+    }
+}
+
+pub fn handle_fen_state_to_game_state(
+    game_state: &mut GameState,
+    draw_details: &mut DrawDetails,
+    board_state: &BoardState,
+) {
+    draw_details.total_non_progressive_moves = board_state.initial_half_moves;
+    game_state.en_passant_mask = 1 << board_state.initial_en_passant_index;
+    if board_state.initial_en_passant_index > 31 {
+        game_state.en_passant_capture_mask = 1 << (board_state.initial_en_passant_index - 8)
+    } else {
+        game_state.en_passant_capture_mask = 1 << (board_state.initial_en_passant_index + 8)
     }
 }
