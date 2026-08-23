@@ -42,6 +42,7 @@ pub struct GameState {
     pub current_array_index: Option<usize>,
     pub legal_moves: u64,
     pub all_legal_moves: [u64; 64],
+    pub current_legal_move_mask: u64,
 }
 
 pub enum MoveResult {
@@ -79,6 +80,7 @@ impl GameState {
             castling_rights,
             black_promotion_mask: 0,
             white_promotion_mask: 0,
+            current_legal_move_mask: 0,
         }
     }
 
@@ -123,16 +125,23 @@ pub fn handle_promotion(
         board_state.board_representation[BP] &= !game_state.black_promotion_mask;
         board_state.board_representation[given_index] |= game_state.black_promotion_mask;
         game_state.black_promotion_mask = 0;
-        board_state.set_attacked_squares(Sides::BLACK, game_state);
-        board_state.handle_king_saftey(Sides::WHITE, game_state);
-        board_state.gen_all_legal_moves(game_state, Sides::WHITE);
+        handle_promotion_after_effects(Sides::BLACK, board_state, game_state);
     }
     if game_state.white_promotion_mask != 0 {
         board_state.board_representation[WP] &= !game_state.white_promotion_mask;
         board_state.board_representation[given_index] |= game_state.white_promotion_mask;
         game_state.white_promotion_mask = 0;
-        board_state.set_attacked_squares(Sides::WHITE, game_state);
-        board_state.handle_king_saftey(Sides::BLACK, game_state);
-        board_state.gen_all_legal_moves(game_state, Sides::BLACK);
+        handle_promotion_after_effects(Sides::WHITE, board_state, game_state);
     }
+}
+
+pub fn handle_promotion_after_effects(
+    side: Sides,
+    board_state: &mut BoardState,
+    game_state: &mut GameState,
+) {
+    board_state.set_attacked_squares(side, game_state);
+    board_state.handle_king_saftey(side.flip(), game_state);
+    board_state.gen_all_legal_moves(game_state, side.flip());
+    board_state.check_endgame(side.flip(), game_state);
 }

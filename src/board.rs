@@ -207,20 +207,37 @@ impl BoardState {
         } else {
             BLACK_INDEXES
         };
+
         game_state.all_legal_moves = [0; 64];
+        game_state.current_legal_move_mask = 0;
         for board_index in indexes_to_check {
             let mut board: u64 = self.board_representation[board_index];
             while board != 0 {
                 let index = board.trailing_zeros();
                 let (piece, _, _) = index_to_piece(board_index).unwrap();
-                game_state.all_legal_moves[index as usize] = piece.generate_moves(
+                let legal_moves: u64 = piece.generate_moves(
                     index as u64,
                     &self.board_representation,
                     &side,
                     game_state,
                 );
+                game_state.all_legal_moves[index as usize] = legal_moves;
+                game_state.current_legal_move_mask |= legal_moves;
                 board &= board - 1;
             }
+        }
+    }
+
+    pub fn check_endgame(&self, side: Sides, game_state: &GameState) {
+        let checks_for_side = if side == Sides::WHITE {
+            game_state.white_checks
+        } else {
+            game_state.black_checks
+        };
+        if game_state.current_legal_move_mask == 0 && checks_for_side == 0 {
+            println!("stalemate for {side:?}");
+        } else if game_state.current_legal_move_mask == 0 && checks_for_side > 0 {
+            println!("checkmate for {side:?}");
         }
     }
 
@@ -274,6 +291,7 @@ impl BoardState {
         self.gen_all_legal_moves(game_state, side.flip());
 
         self.reset_necessary_game_state_variables(game_state);
+        self.check_endgame(side.flip(), game_state);
         if game_state.dev_mode == false {
             game_state.current_side = game_state.current_side.flip();
         }
