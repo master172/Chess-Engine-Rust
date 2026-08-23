@@ -35,7 +35,7 @@ pub fn handle_draw_by_75_move_rule() {
 pub fn handle_draw_by_repititon() {
     draw_text(
         format!("draw by repetition"),
-        (screen_width() - (20.0 * 14.0)) / 2.0,
+        (screen_width() - (23.0 * 11.0)) / 2.0,
         32.0,
         32.0,
         WHITE,
