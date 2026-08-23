@@ -7,6 +7,7 @@ use crate::{
         BoardResult, BoardState,
         pieces::Sides::{self},
     },
+    endgame_manager::{handle_checkmate, handle_stalemate},
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state, handle_promotion},
     input::{InputPackage, handle_promotion_input},
@@ -15,6 +16,7 @@ use crate::{
 };
 
 mod board;
+mod endgame_manager;
 mod fen_engine;
 mod game;
 mod input;
@@ -120,10 +122,14 @@ async fn main() {
                 }
             }
             ChessState::StaleMate(side) => {
-                println!("{side:?} got stalemated")
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                handle_stalemate(side);
             }
             ChessState::CheckMate(side) => {
-                println!("{side:?} got checkmated")
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                handle_checkmate(side);
             }
         }
         next_frame().await;
