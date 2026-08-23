@@ -30,7 +30,7 @@ pub enum States {
 
 const UI_START_POS_X: f32 = 32.0;
 const UI_START_POS_Y: f32 = 32.0;
-const UI_BUTTON_WIDTH: f32 = 48.0;
+const UI_BUTTON_WIDTH: f32 = 8.0;
 const UI_BUTTON_GAP: f32 = 16.0;
 
 impl InputPackage {
