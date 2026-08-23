@@ -85,6 +85,39 @@ pub fn fen_to_board_state(input: &str) -> BoardState {
         }
     }
 
+    if fen_parts[4] != "-" {
+        match fen_parts[4].parse::<u32>() {
+            Ok(val) => board_state.initial_half_moves = val,
+            Err(_) => println!("failed to parse the half move val"),
+        }
+    }
+
+    if fen_parts[3] == "-" {
+        return board_state;
+    }
+    let en_passant_details: &str = &fen_parts[3];
+    if en_passant_details.len() != 2 {
+        eprintln!("invalid en pasant details");
+        return board_state;
+    }
+    let mut en_passant_index: u8 = 0;
+    for (index, val) in en_passant_details.chars().enumerate() {
+        match index {
+            0 => {
+                en_passant_index += file_to_index(val).expect("invalid file in en passant detials")
+            }
+            1 => {
+                en_passant_index +=
+                    8 * rank_to_index(val).expect("invalid rank in en passant detials")
+            }
+            _ => {
+                eprintln!("invalid details in en passant detials");
+            }
+        }
+    }
+
+    eprintln!("{}", en_passant_index);
+    board_state.initial_en_passant_index = en_passant_index as usize;
     board_state
 }
 
@@ -94,4 +127,26 @@ fn set_piece(board_state: &mut BoardState, index: usize, square_index: &mut u64)
 
     board_state.init_piece(index, board_index);
     *square_index += 1;
+}
+
+fn file_to_index(c: char) -> Option<u8> {
+    match c {
+        'a' => Some(0),
+        'b' => Some(1),
+        'c' => Some(2),
+        'd' => Some(3),
+        'e' => Some(4),
+        'f' => Some(5),
+        'g' => Some(6),
+        'h' => Some(7),
+        _ => None,
+    }
+}
+
+fn rank_to_index(c: char) -> Option<u8> {
+    let num: u8 = match c.to_string().parse() {
+        Ok(val) => val,
+        Err(_) => return None,
+    };
+    return Some(num - 1);
 }

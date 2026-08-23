@@ -74,6 +74,8 @@ pub struct BoardState {
     pub board_representation: [u64; 12],
     pub side_to_start: Sides,
     pub castling_rights: u8,
+    pub initial_half_moves: u32,
+    pub initial_en_passant_index: usize,
 }
 
 impl BoardState {
@@ -82,6 +84,8 @@ impl BoardState {
             board_representation: [0; 12],
             side_to_start: side,
             castling_rights: 0,
+            initial_half_moves: 0,
+            initial_en_passant_index: 0,
         }
     }
 
@@ -159,7 +163,8 @@ impl BoardState {
         match piece {
             PAWN => {
                 if game_state.en_passant_capture_mask & (1 << current_index) != 0 {
-                    game_state.en_passant_mask = game_state.en_passant_candidate_mask
+                    game_state.en_passant_mask = game_state.en_passant_candidate_mask;
+                    game_state.en_passant_candidate_mask = 0;
                 } else if game_state.en_passant_mask & (1 << current_index) != 0 {
                     self.board_representation[BP] &= !game_state.en_passant_capture_mask;
                     self.board_representation[WP] &= !game_state.en_passant_capture_mask;

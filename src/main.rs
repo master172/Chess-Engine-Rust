@@ -7,7 +7,7 @@ use crate::{
         BoardResult, BoardState,
         pieces::Sides::{self},
     },
-    draw_manager::DrawDetails,
+    draw_manager::{DrawDetails, handle_fen_state_to_game_state},
     endgame_manager::{
         handle_checkmate, handle_draw_by_75_move_rule, handle_draw_by_insufficient_material,
         handle_draw_by_repititon, handle_stalemate,
@@ -101,10 +101,14 @@ async fn main() {
 
     board_state.set_attacked_squares(board_state.side_to_start.flip(), &mut game_state);
     board_state.handle_king_saftey(board_state.side_to_start, &mut game_state);
-    board_state.gen_all_legal_moves(&mut game_state, board_state.side_to_start);
 
     //also prepare the draw manager
     let mut draw_details: DrawDetails = DrawDetails::new(&game_state, &board_state);
+
+    //and parse the rest of the fen input that we care about
+    handle_fen_state_to_game_state(&mut game_state, &mut draw_details, &board_state);
+
+    board_state.gen_all_legal_moves(&mut game_state, board_state.side_to_start);
 
     if draw_details.insufficient_material(&board_state) {
         prev_result = DrawByInsufficientMaterial
