@@ -46,7 +46,9 @@ impl DrawDetails {
 
         hash ^= CASTLING_KEYS[game_state.castling_rights as usize];
 
-        if game_state.en_passant_mask != 0 {
+        if game_state.en_passant_mask != 0
+            && game_state.en_passant_mask & game_state.current_legal_move_mask != 0
+        {
             let square_index = game_state.en_passant_mask.trailing_zeros();
             hash ^= EN_PASSANT_KEYS[(square_index % 8) as usize];
         }
