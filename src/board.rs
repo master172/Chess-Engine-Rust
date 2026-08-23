@@ -207,6 +207,7 @@ impl BoardState {
         } else {
             BLACK_INDEXES
         };
+        game_state.all_legal_moves = [0; 64];
         for board_index in indexes_to_check {
             let mut board: u64 = self.board_representation[board_index];
             while board != 0 {

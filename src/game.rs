@@ -125,6 +125,7 @@ pub fn handle_promotion(
         game_state.black_promotion_mask = 0;
         board_state.set_attacked_squares(Sides::BLACK, game_state);
         board_state.handle_king_saftey(Sides::WHITE, game_state);
+        board_state.gen_all_legal_moves(game_state, Sides::WHITE);
     }
     if game_state.white_promotion_mask != 0 {
         board_state.board_representation[WP] &= !game_state.white_promotion_mask;
@@ -132,5 +133,6 @@ pub fn handle_promotion(
         game_state.white_promotion_mask = 0;
         board_state.set_attacked_squares(Sides::WHITE, game_state);
         board_state.handle_king_saftey(Sides::BLACK, game_state);
+        board_state.gen_all_legal_moves(game_state, Sides::BLACK);
     }
 }
