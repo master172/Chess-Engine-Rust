@@ -1,5 +1,6 @@
 use crate::{
     board::{BP, BoardResult, BoardState, WP, pieces::Sides},
+    draw_manager::DrawDetails,
     input::InputPackage,
 };
 
@@ -97,6 +98,7 @@ impl GameState {
 pub fn handle_game_state(
     game_state: &mut GameState,
     board_state: &mut BoardState,
+    draw_details: &mut DrawDetails,
     //input: &InputPackage,
 ) -> MoveResult {
     //first check and handle pawn promotion
@@ -109,10 +111,21 @@ pub fn handle_game_state(
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
         match board_state.move_piece(game_state) {
-            BoardResult::None => return MoveResult::Move,
+            BoardResult::None => {
+                draw_details.total_non_progressive_moves += 1;
+                return MoveResult::Move;
+            }
             BoardResult::Promotion(side) => return MoveResult::Promotion(side),
             BoardResult::CheckMate(side) => return MoveResult::CheckMate(side),
             BoardResult::StaleMate(side) => return MoveResult::StaleMate(side),
+            BoardResult::Capture => {
+                draw_details.total_non_progressive_moves = 0;
+                return MoveResult::Move;
+            }
+            BoardResult::PawnMove => {
+                draw_details.total_non_progressive_moves = 0;
+                return MoveResult::Move;
+            }
         };
     } else {
         board_state.generate_legal_moves(game_state);

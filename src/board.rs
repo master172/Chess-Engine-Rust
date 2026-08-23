@@ -62,6 +62,8 @@ const BLACK_PROMOTION_MASK: u64 = 0xff;
 
 pub enum BoardResult {
     None,
+    Capture,
+    PawnMove,
     Promotion(Sides),
     CheckMate(Sides),
     StaleMate(Sides),
@@ -261,6 +263,9 @@ impl BoardState {
         match side {
             Sides::WHITE => {
                 for i in BLACK_INDEXES {
+                    if self.board_representation[i] & !capture_mask != 0 {
+                        result = BoardResult::Capture
+                    }
                     self.board_representation[i] &= capture_mask;
                 }
                 relevant_promotion_mask = &mut game_state.white_promotion_mask;
@@ -268,6 +273,9 @@ impl BoardState {
             }
             Sides::BLACK => {
                 for i in WHITE_INDEXES {
+                    if self.board_representation[i] & !capture_mask != 0 {
+                        result = BoardResult::Capture
+                    }
                     self.board_representation[i] &= capture_mask;
                 }
                 relevant_promotion_mask = &mut game_state.black_promotion_mask;
@@ -281,6 +289,8 @@ impl BoardState {
         {
             *relevant_promotion_mask |= 1 << game_state.current_index.unwrap() as u64;
             result = BoardResult::Promotion(side);
+        } else if piece == PAWN {
+            result = BoardResult::PawnMove
         }
 
         self.set_attacked_squares(side, game_state);

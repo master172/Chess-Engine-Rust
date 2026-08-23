@@ -7,7 +7,8 @@ use crate::{
         BoardResult, BoardState,
         pieces::Sides::{self},
     },
-    endgame_manager::{handle_checkmate, handle_stalemate},
+    draw_manager::DrawDetails,
+    endgame_manager::{handle_checkmate, handle_draw_by_75_move_rule, handle_stalemate},
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state, handle_promotion},
     input::{InputPackage, handle_promotion_input},
@@ -16,6 +17,7 @@ use crate::{
 };
 
 mod board;
+mod draw_manager;
 mod endgame_manager;
 mod fen_engine;
 mod game;
@@ -31,6 +33,7 @@ pub enum ChessState {
     Promotion(Sides),
     StaleMate(Sides),
     CheckMate(Sides),
+    DrawBy75MoveRule,
 }
 
 fn game_conf() -> Conf {
@@ -81,6 +84,8 @@ async fn main() {
 
     // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
+    //also prepare the draw manager
+    let mut draw_details: DrawDetails = DrawDetails::new();
 
     let mut game_state: GameState = GameState::new(
         dev_mode,
@@ -104,7 +109,12 @@ async fn main() {
             ChessState::Regular => {
                 //println!("{}", get_fps());
                 render_board();
-                prev_result = process_input(&mut input_package, &mut game_state, &mut board_state);
+                prev_result = process_input(
+                    &mut input_package,
+                    &mut game_state,
+                    &mut board_state,
+                    &mut draw_details,
+                );
                 draw_legal_squares(&game_state);
                 //debug_draw(&game_state);
                 render_pieces(&board_state, &piece_textures);
@@ -131,6 +141,11 @@ async fn main() {
                 render_pieces(&board_state, &piece_textures);
                 handle_checkmate(side);
             }
+            ChessState::DrawBy75MoveRule => {
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                handle_draw_by_75_move_rule();
+            }
         }
         next_frame().await;
     }
@@ -140,13 +155,14 @@ fn process_input(
     input_package: &mut InputPackage,
     game_state: &mut GameState,
     board_state: &mut BoardState,
+    draw_details: &mut DrawDetails,
 ) -> ChessState {
     let mut result: ChessState = ChessState::Regular;
     match input_package.gather_input() {
         input::States::Idle => (),
         input::States::Update => {
             game_state.input_to_game_state(input_package);
-            match handle_game_state(game_state, board_state) {
+            match handle_game_state(game_state, board_state, draw_details) {
                 MoveResult::Move => input_package.reset_input(),
                 MoveResult::Promotion(side) => result = ChessState::Promotion(side),
                 MoveResult::CheckMate(side) => result = ChessState::CheckMate(side),
@@ -167,6 +183,10 @@ fn process_input(
             }
         }
         None => (),
+    }
+
+    if draw_details.draw_by_excessive_non_progressive_moves() {
+        return ChessState::DrawBy75MoveRule;
     }
 
     result
