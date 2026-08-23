@@ -129,6 +129,9 @@ fn set_en_passant_candiadte_mask(
         final_board = final_board | board;
     }
     let pos: u64 = get_foward_double_movement_pos(index, side, final_board);
+    if pos == 0 {
+        return;
+    }
     let capture: u64 = get_foward_movement_pos(index, side);
     if validate_foward_double_movement(pos, final_board) {
         game_state.en_passant_candidate_mask = capture;
