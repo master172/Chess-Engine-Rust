@@ -117,12 +117,8 @@ impl BoardState {
             &side,
             game_state,
         );
-        game_state.legal_moves = piece.generate_moves(
-            game_state.current_index.unwrap() as u64,
-            &self.board_representation,
-            &side,
-            &game_state,
-        );
+        game_state.legal_moves =
+            game_state.all_legal_moves[game_state.current_index.unwrap() as usize];
     }
 
     pub fn validate_piece_selection(&self, index: u64) -> bool {
@@ -205,6 +201,28 @@ impl BoardState {
         }
     }
 
+    pub fn gen_all_legal_moves(&self, game_state: &mut GameState, side: Sides) {
+        let indexes_to_check = if side == Sides::WHITE {
+            WHITE_INDEXES
+        } else {
+            BLACK_INDEXES
+        };
+        for board_index in indexes_to_check {
+            let mut board: u64 = self.board_representation[board_index];
+            while board != 0 {
+                let index = board.trailing_zeros();
+                let (piece, _, _) = index_to_piece(board_index).unwrap();
+                game_state.all_legal_moves[index as usize] = piece.generate_moves(
+                    index as u64,
+                    &self.board_representation,
+                    &side,
+                    game_state,
+                );
+                board &= board - 1;
+            }
+        }
+    }
+
     pub fn move_piece(&mut self, game_state: &mut GameState) -> BoardResult {
         let mut result: BoardResult = BoardResult::None;
         let (piece, side, _) = self
@@ -252,6 +270,7 @@ impl BoardState {
             game_state.current_index.unwrap() as u64,
         );
         self.handle_king_saftey(side.flip(), game_state);
+        self.gen_all_legal_moves(game_state, side.flip());
 
         self.reset_necessary_game_state_variables(game_state);
         if game_state.dev_mode == false {

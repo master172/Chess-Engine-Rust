@@ -41,6 +41,7 @@ pub struct GameState {
     pub current_index: Option<i32>,
     pub current_array_index: Option<usize>,
     pub legal_moves: u64,
+    pub all_legal_moves: [u64; 64],
 }
 
 pub enum MoveResult {
@@ -55,6 +56,7 @@ impl GameState {
         Self {
             current_index: None,
             legal_moves: 0,
+            all_legal_moves: [0; 64],
             previous_index: None,
             current_array_index: None,
             dev_mode,

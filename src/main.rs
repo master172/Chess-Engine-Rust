@@ -86,6 +86,7 @@ async fn main() {
 
     board_state.set_attacked_squares(board_state.side_to_start.flip(), &mut game_state);
     board_state.handle_king_saftey(board_state.side_to_start, &mut game_state);
+    board_state.gen_all_legal_moves(&mut game_state, board_state.side_to_start);
     //loading textures and starting setting up input packages
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {
