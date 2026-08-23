@@ -8,7 +8,9 @@ use crate::{
         pieces::Sides::{self},
     },
     draw_manager::DrawDetails,
-    endgame_manager::{handle_checkmate, handle_draw_by_75_move_rule, handle_stalemate},
+    endgame_manager::{
+        handle_checkmate, handle_draw_by_75_move_rule, handle_draw_by_repititon, handle_stalemate,
+    },
     fen_engine::fen_to_board_state,
     game::{GameState, MoveResult, handle_game_state, handle_promotion},
     input::{InputPackage, handle_promotion_input},
@@ -25,6 +27,7 @@ mod input;
 pub mod lookup_helpers;
 mod piece_textures;
 mod renderer;
+mod zorbist_keys;
 
 /// the enum that the main function state machine uses to decide wether to handle input processing for the board
 /// or the promoton UI.
@@ -34,6 +37,7 @@ pub enum ChessState {
     StaleMate(Sides),
     CheckMate(Sides),
     DrawBy75MoveRule,
+    DrawByRepition,
 }
 
 fn game_conf() -> Conf {
@@ -84,8 +88,6 @@ async fn main() {
 
     // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
-    //also prepare the draw manager
-    let mut draw_details: DrawDetails = DrawDetails::new();
 
     let mut game_state: GameState = GameState::new(
         dev_mode,
@@ -96,6 +98,10 @@ async fn main() {
     board_state.set_attacked_squares(board_state.side_to_start.flip(), &mut game_state);
     board_state.handle_king_saftey(board_state.side_to_start, &mut game_state);
     board_state.gen_all_legal_moves(&mut game_state, board_state.side_to_start);
+
+    //also prepare the draw manager
+    let mut draw_details: DrawDetails = DrawDetails::new(&game_state, &board_state);
+
     //loading textures and starting setting up input packages
     let piece_textures: PieceTextures = load_all_textures().await;
     let mut input_package: InputPackage = InputPackage {
@@ -146,6 +152,11 @@ async fn main() {
                 render_pieces(&board_state, &piece_textures);
                 handle_draw_by_75_move_rule();
             }
+            ChessState::DrawByRepition => {
+                render_board();
+                render_pieces(&board_state, &piece_textures);
+                handle_draw_by_repititon();
+            }
         }
         next_frame().await;
     }
@@ -167,6 +178,7 @@ fn process_input(
                 MoveResult::Promotion(side) => result = ChessState::Promotion(side),
                 MoveResult::CheckMate(side) => result = ChessState::CheckMate(side),
                 MoveResult::StaleMate(side) => result = ChessState::StaleMate(side),
+                MoveResult::DrawByRepition => result = ChessState::DrawByRepition,
                 _ => (),
             }
         }

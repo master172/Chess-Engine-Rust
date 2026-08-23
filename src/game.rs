@@ -1,6 +1,7 @@
 use crate::{
     board::{BP, BoardResult, BoardState, WP, pieces::Sides},
     draw_manager::DrawDetails,
+    game::MoveResult::DrawByRepition,
     input::InputPackage,
 };
 
@@ -53,6 +54,7 @@ pub enum MoveResult {
     Promotion(Sides),
     CheckMate(Sides),
     StaleMate(Sides),
+    DrawByRepition,
 }
 
 impl GameState {
@@ -110,23 +112,32 @@ pub fn handle_game_state(
     if game_state.legal_moves != 0
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
-        match board_state.move_piece(game_state) {
+        let result = match board_state.move_piece(game_state) {
             BoardResult::None => {
                 draw_details.total_non_progressive_moves += 1;
-                return MoveResult::Move;
+                MoveResult::Move
             }
-            BoardResult::Promotion(side) => return MoveResult::Promotion(side),
-            BoardResult::CheckMate(side) => return MoveResult::CheckMate(side),
-            BoardResult::StaleMate(side) => return MoveResult::StaleMate(side),
+            BoardResult::Promotion(side) => MoveResult::Promotion(side),
+            BoardResult::CheckMate(side) => MoveResult::CheckMate(side),
+            BoardResult::StaleMate(side) => MoveResult::StaleMate(side),
             BoardResult::Capture => {
                 draw_details.total_non_progressive_moves = 0;
-                return MoveResult::Move;
+                MoveResult::Move
             }
             BoardResult::PawnMove => {
                 draw_details.total_non_progressive_moves = 0;
-                return MoveResult::Move;
+                MoveResult::Move
             }
         };
+
+        let num_appearence: u8 =
+            draw_details.add_zorbist_hash(game_state.current_side, game_state, board_state);
+
+        if num_appearence >= 3 {
+            return DrawByRepition;
+        }
+
+        result
     } else {
         board_state.generate_legal_moves(game_state);
         return MoveResult::Generate;
