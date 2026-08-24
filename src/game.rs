@@ -1,4 +1,7 @@
+use macroquad::audio::play_sound_once;
+
 use crate::{
+    audio_helper::AudioPackage,
     board::{BP, BoardResult, BoardState, WP, pieces::Sides},
     draw_manager::DrawDetails,
     game::MoveResult::{DrawByInsufficientMaterial, DrawByRepition},
@@ -102,6 +105,7 @@ pub fn handle_game_state(
     game_state: &mut GameState,
     board_state: &mut BoardState,
     draw_details: &mut DrawDetails,
+    audio_package: &AudioPackage,
     //input: &InputPackage,
 ) -> MoveResult {
     //first check and handle pawn promotion
@@ -113,19 +117,58 @@ pub fn handle_game_state(
     if game_state.legal_moves != 0
         && (1 << game_state.current_index.unwrap()) & game_state.legal_moves != 0
     {
-        let result = match board_state.move_piece(game_state) {
+        let result = match board_state.move_piece(game_state, &audio_package) {
             BoardResult::None => {
+                play_sound_once(if game_state.current_side == Sides::WHITE {
+                    &audio_package.move_piece_white
+                } else {
+                    &audio_package.move_piece_black
+                });
                 draw_details.total_non_progressive_moves += 1;
                 MoveResult::Move
             }
-            BoardResult::Promotion(side) => MoveResult::Promotion(side),
-            BoardResult::CheckMate(side) => MoveResult::CheckMate(side),
-            BoardResult::StaleMate(side) => MoveResult::StaleMate(side),
+            BoardResult::Promotion(side) => {
+                play_sound_once(if game_state.current_side == Sides::WHITE {
+                    &audio_package.move_piece_white
+                } else {
+                    &audio_package.move_piece_black
+                });
+                MoveResult::Promotion(side)
+            }
+            BoardResult::CheckMate(side) => {
+                play_sound_once(&audio_package.checkmate);
+                MoveResult::CheckMate(side)
+            }
+            BoardResult::StaleMate(side) => {
+                play_sound_once(&audio_package.stalemate);
+                MoveResult::StaleMate(side)
+            }
             BoardResult::Capture => {
+                play_sound_once(if game_state.current_side == Sides::WHITE {
+                    &audio_package.capture_piece_white
+                } else {
+                    &audio_package.capture_piece_black
+                });
                 draw_details.total_non_progressive_moves = 0;
                 MoveResult::Move
             }
-            BoardResult::PawnMove => {
+            BoardResult::PawnMove(capture) => {
+                match capture {
+                    false => {
+                        play_sound_once(if game_state.current_side == Sides::WHITE {
+                            &audio_package.move_piece_white
+                        } else {
+                            &audio_package.move_piece_black
+                        });
+                    }
+                    true => {
+                        play_sound_once(if game_state.current_side == Sides::WHITE {
+                            &audio_package.capture_piece_white
+                        } else {
+                            &audio_package.capture_piece_black
+                        });
+                    }
+                }
                 draw_details.total_non_progressive_moves = 0;
                 MoveResult::Move
             }

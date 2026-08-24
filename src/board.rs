@@ -1,5 +1,8 @@
+use macroquad::audio::play_sound_once;
+
 use crate::{
     GameState,
+    audio_helper::AudioPackage,
     board::{
         BoardResult::{CheckMate, StaleMate},
         move_generator::king::King,
@@ -63,7 +66,7 @@ const BLACK_PROMOTION_MASK: u64 = 0xff;
 pub enum BoardResult {
     None,
     Capture,
-    PawnMove,
+    PawnMove(bool),
     Promotion(Sides),
     CheckMate(Sides),
     StaleMate(Sides),
@@ -159,6 +162,7 @@ impl BoardState {
         piece: Piece,
         prev_index: u64,
         current_index: u64,
+        audio_package: &AudioPackage,
     ) {
         match piece {
             PAWN => {
@@ -187,6 +191,11 @@ impl BoardState {
                     Some((to, from)) => {
                         self.board_representation[rook_index] &= !from;
                         self.board_representation[rook_index] |= to;
+                        play_sound_once(if side == Sides::WHITE {
+                            &audio_package.castle_white
+                        } else {
+                            &audio_package.castle_black
+                        });
                     }
                 }
             }
@@ -252,7 +261,11 @@ impl BoardState {
         return BoardResult::None;
     }
 
-    pub fn move_piece(&mut self, game_state: &mut GameState) -> BoardResult {
+    pub fn move_piece(
+        &mut self,
+        game_state: &mut GameState,
+        audio_package: &AudioPackage,
+    ) -> BoardResult {
         let mut result: BoardResult = BoardResult::None;
         let (piece, side, _) = self
             .get_piece_from_index(game_state.previous_index.unwrap())
@@ -265,11 +278,13 @@ impl BoardState {
 
         let relevant_promotion_mask: &mut u64;
         let validation_promotion_mask: u64;
+        let mut capture: bool = false;
         match side {
             Sides::WHITE => {
                 for i in BLACK_INDEXES {
                     if self.board_representation[i] & !capture_mask != 0 {
-                        result = BoardResult::Capture
+                        result = BoardResult::Capture;
+                        capture = true;
                     }
                     self.board_representation[i] &= capture_mask;
                 }
@@ -279,7 +294,8 @@ impl BoardState {
             Sides::BLACK => {
                 for i in WHITE_INDEXES {
                     if self.board_representation[i] & !capture_mask != 0 {
-                        result = BoardResult::Capture
+                        result = BoardResult::Capture;
+                        capture = true;
                     }
                     self.board_representation[i] &= capture_mask;
                 }
@@ -295,7 +311,7 @@ impl BoardState {
             *relevant_promotion_mask |= 1 << game_state.current_index.unwrap() as u64;
             result = BoardResult::Promotion(side);
         } else if piece == PAWN {
-            result = BoardResult::PawnMove
+            result = BoardResult::PawnMove(capture)
         }
 
         self.set_attacked_squares(side, game_state);
@@ -305,8 +321,22 @@ impl BoardState {
             piece,
             game_state.previous_index.unwrap() as u64,
             game_state.current_index.unwrap() as u64,
+            audio_package,
         );
         self.handle_king_saftey(side.flip(), game_state);
+
+        let num_checks = if side.flip() == Sides::WHITE {
+            game_state.white_checks
+        } else {
+            game_state.black_checks
+        };
+        if num_checks > 0 {
+            play_sound_once(if side.flip() == Sides::WHITE {
+                &audio_package.check_white
+            } else {
+                &audio_package.check_black
+            });
+        };
         self.gen_all_legal_moves(game_state, side.flip());
 
         self.reset_necessary_game_state_variables(game_state);

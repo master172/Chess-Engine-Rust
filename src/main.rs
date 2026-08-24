@@ -1,9 +1,10 @@
-#![windows_subsystem = "windows"]
-use macroquad::prelude::*;
+//#![windows_subsystem = "windows"]
+use macroquad::{audio::play_sound_once, prelude::*};
 use std::env;
 
 use crate::{
     ChessState::{DrawByInsufficientMaterial, Regular},
+    audio_helper::AudioPackage,
     board::{
         BoardResult, BoardState,
         pieces::Sides::{self},
@@ -20,6 +21,7 @@ use crate::{
     renderer::{draw_legal_squares, handle_overlays, render_board, render_pieces},
 };
 
+mod audio_helper;
 mod board;
 mod draw_manager;
 mod endgame_manager;
@@ -91,6 +93,7 @@ async fn main() {
 
     let mut prev_result: ChessState = Regular;
 
+    let audio_package: AudioPackage = AudioPackage::load_all_sounds().await;
     // then preparing the game and board state
     let mut board_state = fen_to_board_state(starting_string);
 
@@ -120,7 +123,8 @@ async fn main() {
     let mut input_package: InputPackage = InputPackage {
         left_mouse_index: None,
     };
-
+    play_sound_once(&audio_package.game_start);
+    let mut endgame_sound_played: bool = false;
     //here is the actual game loop logic
     loop {
         match prev_result {
@@ -132,6 +136,7 @@ async fn main() {
                     &mut game_state,
                     &mut board_state,
                     &mut draw_details,
+                    &audio_package,
                 );
                 draw_legal_squares(&game_state);
                 //debug_draw(&game_state);
@@ -150,26 +155,46 @@ async fn main() {
                 }
             }
             ChessState::StaleMate(side) => {
+                if endgame_sound_played == false {
+                    endgame_sound_played = true;
+                    play_sound_once(&audio_package.stalemate);
+                }
                 render_board();
                 render_pieces(&board_state, &piece_textures);
                 handle_stalemate(side);
             }
             ChessState::CheckMate(side) => {
+                if endgame_sound_played == false {
+                    endgame_sound_played = true;
+                    play_sound_once(&audio_package.checkmate);
+                }
                 render_board();
                 render_pieces(&board_state, &piece_textures);
                 handle_checkmate(side);
             }
             ChessState::DrawBy75MoveRule => {
+                if endgame_sound_played == false {
+                    endgame_sound_played = true;
+                    play_sound_once(&audio_package.game_end);
+                }
                 render_board();
                 render_pieces(&board_state, &piece_textures);
                 handle_draw_by_75_move_rule();
             }
             ChessState::DrawByRepition => {
+                if endgame_sound_played == false {
+                    endgame_sound_played = true;
+                    play_sound_once(&audio_package.game_end);
+                }
                 render_board();
                 render_pieces(&board_state, &piece_textures);
                 handle_draw_by_repititon();
             }
             ChessState::DrawByInsufficientMaterial => {
+                if endgame_sound_played == false {
+                    endgame_sound_played = true;
+                    play_sound_once(&audio_package.game_end);
+                }
                 render_board();
                 render_pieces(&board_state, &piece_textures);
                 handle_draw_by_insufficient_material();
@@ -184,13 +209,14 @@ fn process_input(
     game_state: &mut GameState,
     board_state: &mut BoardState,
     draw_details: &mut DrawDetails,
+    audio_package: &AudioPackage,
 ) -> ChessState {
     let mut result: ChessState = ChessState::Regular;
     match input_package.gather_input() {
         input::States::Idle => (),
         input::States::Update => {
             game_state.input_to_game_state(input_package);
-            match handle_game_state(game_state, board_state, draw_details) {
+            match handle_game_state(game_state, board_state, draw_details, audio_package) {
                 MoveResult::Move => input_package.reset_input(),
                 MoveResult::Promotion(side) => result = ChessState::Promotion(side),
                 MoveResult::CheckMate(side) => result = ChessState::CheckMate(side),
