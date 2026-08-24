@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 use macroquad::{audio::play_sound_once, prelude::*};
 use std::env;
 
